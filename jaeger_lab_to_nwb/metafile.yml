@@ -9,3 +9,18 @@ Behavior:
 Ophys:
   Device:
     - name: Device
+  ImagingPlane:
+    - description: ADDME
+      device: Device
+      excitation_lambda: ADDME
+      imaging_rate: ADDME
+      indicator: ADDME
+      location: ADDME
+      name: ImagingPlane
+      optical_channel:
+        - description: ADDME
+          emission_lambda: ADDME
+          name: OpticalChannel
+  TwoPhotonSeries:
+    - name: TwoPhotonSeries
+      imaging_plane: ImagingPlane
