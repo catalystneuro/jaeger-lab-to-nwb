@@ -48,7 +48,6 @@ def conversion_function(source_paths, f_nwb, metadata, subject_id, **kwargs):
     with open(metafile, "r") as f:
         line = f.readline()
         while line:
-            print(line.strip())
             if 'acquisition_date' in line:
                 acquisition_date = line.replace('acquisition_date=', '').strip()
             if 'sample_time' in line:
@@ -73,7 +72,8 @@ def conversion_function(source_paths, f_nwb, metadata, subject_id, **kwargs):
     nwb.add_device(device)
 
     # Read .rsd files for subject_id
-    for fraw in files_raw:
+    for fn, fraw in enumerate(files_raw):
+        print('Raw file: ', fraw)
         fpath = os.path.join(dir_cortical_imaging, fraw)
 
         # Open file as a byte array
@@ -88,7 +88,7 @@ def conversion_function(source_paths, f_nwb, metadata, subject_id, **kwargs):
         frames = np.zeros((nFrames, 100, 100))
         excess_frames = np.zeros((nFrames, 20, 100))
         for ifr in range(nFrames):
-            iframe = words_reshaped[:, ifr].reshape(128, 100, order='F')
+            iframe = -words_reshaped[:, ifr].reshape(128, 100, order='F')
             frames[ifr, :, :] = iframe[20:120, :]
             excess_frames[ifr, :, :] = iframe[0:20, :]
 
