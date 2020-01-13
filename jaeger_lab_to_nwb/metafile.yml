@@ -12,14 +12,14 @@ Ophys:
   ImagingPlane:
     - description: ADDME
       device: Device
-      excitation_lambda: ADDME
-      imaging_rate: ADDME
-      indicator: ADDME
+      excitation_lambda: 0.0
+      imaging_rate: 200.0
+      indicator: VSFP_Butterfly_1.2
       location: ADDME
       name: ImagingPlane
       optical_channel:
         - description: ADDME
-          emission_lambda: ADDME
+          emission_lambda: 0.0
           name: OpticalChannel
   TwoPhotonSeries:
     - name: TwoPhotonSeries
