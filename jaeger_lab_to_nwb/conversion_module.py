@@ -6,8 +6,10 @@ from pynwb.ophys import OpticalChannel, TwoPhotonSeries
 from pynwb.device import Device
 from hdmf.data_utils import DataChunkIterator
 
+from datetime import datetime
 import numpy as np
 import yaml
+import copy
 import struct
 import re
 import os
@@ -64,8 +66,17 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
             if k == 'dir_cortical_imaging':
                 dir_cortical_imaging = v['path']
 
+    # All trials
+    all_trials = [100, 101, 102]
+
+    # Get initial metadata
+    meta_init = copy.deepcopy(metadata['NWBFile'])
+    trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[0]) + ".rsh")
+    file_rsm, files_raw, acquisition_date, sample_rate = read_trial_meta(trial_meta=trial_meta)
+    meta_init['session_start_time'] = datetime.strptime(acquisition_date, '%Y/%m/%d %H:%M:%S')
+
     # Initialize a NWB object
-    nwb = NWBFile(**metadata['NWBFile'])
+    nwb = NWBFile(**meta_init)
 
     # Create and add device
     device = Device(name=metadata['Ophys']['Device'][0]['name'])
@@ -91,22 +102,21 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
             location=meta_ip['location'],
         )
 
-    # Iterates over trials, reads .rsd files for each trial number
-    all_trials = [100, 101, 102]
-
     # TODO: Adds trials
+    #
 
     # Adds raw imaging data
     if add_raw:
         def data_gen():
             n_trials = len(all_trials)
             chunk = 0
+            # Iterates over trials, reads .rsd files for each trial number
             while chunk < n_trials:
                 # Read trial-specific metadata file .rsh
                 trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[chunk]) + ".rsh")
                 file_rsm, files_raw, acquisition_date, sample_rate = read_trial_meta(trial_meta=trial_meta)
 
-                # Iterate over all files within the same trial
+                # Iterates over all files within the same trial
                 for fn, fraw in enumerate(files_raw):
                     print('adding trial: ', all_trials[chunk], ': ', 100*fn/len(files_raw), '%')
                     fpath = os.path.join(dir_cortical_imaging, fraw)
@@ -117,7 +127,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
                     # Data as word array: 'h' signed, 'H' unsigned
                     words = np.array(struct.unpack('h'*(len(byte)//2), byte))
 
-                    # Frames (nFrames, 100, 100)
+                    # Iterates over frames within the same file (nFrames, 100, 100)
                     nFrames = int(len(words)/12800)
                     words_reshaped = words.reshape(12800, nFrames, order='F')
                     frames = np.zeros((nFrames, 100, 100))
