@@ -123,26 +123,29 @@ def conversion_function(source_paths, f_nwb, metadata, **kwargs):
                     frames[ifr, :, :] = iframe[20:120, :]
                     excess_frames[ifr, :, :] = iframe[0:20, :]
 
-                if fn == 0:
-                    all_frames = frames
-                    all_excess = excess_frames
-                else:
-                    all_frames = np.concatenate((all_frames, frames), axis=0)
-                    all_excess = np.concatenate((all_frames, frames), axis=0)
+                    yield iframe[20:120, :]
+                # if fn == 0:
+                #     all_frames = frames
+                #     all_excess = excess_frames
+                # else:
+                #     all_frames = np.concatenate((all_frames, frames), axis=0)
+                #     all_excess = np.concatenate((all_frames, frames), axis=0)
 
-                # Aanalog signals are taken from excess data variable
-                analog_1 = np.squeeze(np.squeeze(excess_frames[:, 12, 0:80:4]).reshape(20*256, 1))
-                analog_2 = np.squeeze(np.squeeze(excess_frames[:, 14, 0:80:4]).reshape(20*256, 1))
-                stim_trg = np.squeeze(np.squeeze(excess_frames[:, 8, 0:80:4]).reshape(20*256, 1))
 
-            print('Data shape: ', all_frames.shape)
+            #     # Analog signals are taken from excess data variable
+            #     analog_1 = np.squeeze(np.squeeze(excess_frames[:, 12, 0:80:4]).reshape(20*256, 1))
+            #     analog_2 = np.squeeze(np.squeeze(excess_frames[:, 14, 0:80:4]).reshape(20*256, 1))
+            #     stim_trg = np.squeeze(np.squeeze(excess_frames[:, 8, 0:80:4]).reshape(20*256, 1))
+            #
+            #print('Data shape: ', all_frames.shape)
             chunk += 1
-            yield all_frames
+            # yield all_frames
 
     # Create iterator
     tps_data = DataChunkIterator(
         data=data_gen(),
         iter_axis=0,
+        buffer_size=16384,
         #maxshape=(None, 100, 100)
     )
 
