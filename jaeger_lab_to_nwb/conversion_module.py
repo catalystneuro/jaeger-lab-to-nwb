@@ -28,6 +28,9 @@ def read_trial_meta(trial_meta):
                 aux = line.replace('sample_time=', '').replace('msec', '').strip()
                 sample_time = float(aux)/1000.
                 sample_rate = 1 / sample_time
+            if 'page_frames' in line:
+                aux = line.replace('page_frames=', '').strip()
+                n_frames = int(aux)
             if addftolist:
                 files_raw.append(line.strip())
             if 'Data-File-List' in line:
@@ -37,7 +40,7 @@ def read_trial_meta(trial_meta):
     # Separate .rsm file (bitmap of monitor) from .rsd files (raw data)
     file_rsm = files_raw[0]
     files_raw = files_raw[1:]
-    return file_rsm, files_raw, acquisition_date, sample_rate
+    return file_rsm, files_raw, acquisition_date, sample_rate, n_frames
 
 
 def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
@@ -67,16 +70,28 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
                 dir_cortical_imaging = v['path']
 
     # All trials
-    all_trials = [100, 101, 102]
+    # TODO: some trials seem to be consecutive and others are spaced by larger time gaps
+    # TODO: also they seem to have different data. We need to get a better description of trials
+    # TODO: and handle them properly
+    all_trials = ['001', '002', '003', '004', '005', '100', '101', '102']
 
     # Get initial metadata
     meta_init = copy.deepcopy(metadata['NWBFile'])
     trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[0]) + ".rsh")
-    file_rsm, files_raw, acquisition_date, sample_rate = read_trial_meta(trial_meta=trial_meta)
+    file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
     meta_init['session_start_time'] = datetime.strptime(acquisition_date, '%Y/%m/%d %H:%M:%S')
 
     # Initialize a NWB object
     nwb = NWBFile(**meta_init)
+
+    # Adds trials
+    tr_stop = 0.
+    for tr in all_trials:
+        trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(tr) + ".rsh")
+        file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
+        tr_start = tr_stop
+        tr_stop += n_frames / sample_rate
+        nwb.add_trial(start_time=tr_start, stop_time=tr_stop)
 
     # Create and add device
     device = Device(name=metadata['Ophys']['Device'][0]['name'])
@@ -102,9 +117,6 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
             location=meta_ip['location'],
         )
 
-    # TODO: Adds trials
-    #
-
     # Adds raw imaging data
     if add_raw:
         def data_gen():
@@ -114,7 +126,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
             while chunk < n_trials:
                 # Read trial-specific metadata file .rsh
                 trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[chunk]) + ".rsh")
-                file_rsm, files_raw, acquisition_date, sample_rate = read_trial_meta(trial_meta=trial_meta)
+                file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
 
                 # Iterates over all files within the same trial
                 for fn, fraw in enumerate(files_raw):
@@ -127,12 +139,12 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
                     # Data as word array: 'h' signed, 'H' unsigned
                     words = np.array(struct.unpack('h'*(len(byte)//2), byte))
 
-                    # Iterates over frames within the same file (nFrames, 100, 100)
-                    nFrames = int(len(words)/12800)
-                    words_reshaped = words.reshape(12800, nFrames, order='F')
-                    frames = np.zeros((nFrames, 100, 100))
-                    excess_frames = np.zeros((nFrames, 20, 100))
-                    for ifr in range(nFrames):
+                    # Iterates over frames within the same file (n_frames, 100, 100)
+                    n_frames = int(len(words)/12800)
+                    words_reshaped = words.reshape(12800, n_frames, order='F')
+                    frames = np.zeros((n_frames, 100, 100))
+                    excess_frames = np.zeros((n_frames, 20, 100))
+                    for ifr in range(n_frames):
                         iframe = -words_reshaped[:, ifr].reshape(128, 100, order='F')
                         frames[ifr, :, :] = iframe[20:120, :]
                         excess_frames[ifr, :, :] = iframe[0:20, :]
