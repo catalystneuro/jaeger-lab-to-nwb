@@ -38,7 +38,7 @@ def read_trial_meta(trial_meta):
     return file_rsm, files_raw, acquisition_date, sample_rate
 
 
-def conversion_function(source_paths, f_nwb, metadata, **kwargs):
+def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
     """
     Copy data stored in a set of .npz files to a single NWB file.
 
@@ -94,72 +94,65 @@ def conversion_function(source_paths, f_nwb, metadata, **kwargs):
     # Iterates over trials, reads .rsd files for each trial number
     all_trials = [100, 101, 102]
 
-    def data_gen():
-        n_trials = len(all_trials)
-        chunk = 0
-        while chunk < n_trials:
-            # Read trial-specific metadata file .rsh
-            trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[chunk]) + ".rsh")
-            file_rsm, files_raw, acquisition_date, sample_rate = read_trial_meta(trial_meta=trial_meta)
+    # TODO: Adds trials
 
-            # Iterate over all files within the same trial
-            for fn, fraw in enumerate(files_raw):
-                print('adding trial: ', all_trials[chunk], ': ', 100*fn/len(files_raw), '%')
-                fpath = os.path.join(dir_cortical_imaging, fraw)
+    # Adds raw imaging data
+    if add_raw:
+        def data_gen():
+            n_trials = len(all_trials)
+            chunk = 0
+            while chunk < n_trials:
+                # Read trial-specific metadata file .rsh
+                trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[chunk]) + ".rsh")
+                file_rsm, files_raw, acquisition_date, sample_rate = read_trial_meta(trial_meta=trial_meta)
 
-                # Open file as a byte array
-                with open(fpath, "rb") as f:
-                    byte = f.read(1000000000)
-                # Data as word array: 'h' signed, 'H' unsigned
-                words = np.array(struct.unpack('h'*(len(byte)//2), byte))
+                # Iterate over all files within the same trial
+                for fn, fraw in enumerate(files_raw):
+                    print('adding trial: ', all_trials[chunk], ': ', 100*fn/len(files_raw), '%')
+                    fpath = os.path.join(dir_cortical_imaging, fraw)
 
-                # Frames (nFrames, 100, 100)
-                nFrames = int(len(words)/12800)
-                words_reshaped = words.reshape(12800, nFrames, order='F')
-                frames = np.zeros((nFrames, 100, 100))
-                excess_frames = np.zeros((nFrames, 20, 100))
-                for ifr in range(nFrames):
-                    iframe = -words_reshaped[:, ifr].reshape(128, 100, order='F')
-                    frames[ifr, :, :] = iframe[20:120, :]
-                    excess_frames[ifr, :, :] = iframe[0:20, :]
+                    # Open file as a byte array
+                    with open(fpath, "rb") as f:
+                        byte = f.read(1000000000)
+                    # Data as word array: 'h' signed, 'H' unsigned
+                    words = np.array(struct.unpack('h'*(len(byte)//2), byte))
 
-                    yield iframe[20:120, :]
-                # if fn == 0:
-                #     all_frames = frames
-                #     all_excess = excess_frames
-                # else:
-                #     all_frames = np.concatenate((all_frames, frames), axis=0)
-                #     all_excess = np.concatenate((all_frames, frames), axis=0)
+                    # Frames (nFrames, 100, 100)
+                    nFrames = int(len(words)/12800)
+                    words_reshaped = words.reshape(12800, nFrames, order='F')
+                    frames = np.zeros((nFrames, 100, 100))
+                    excess_frames = np.zeros((nFrames, 20, 100))
+                    for ifr in range(nFrames):
+                        iframe = -words_reshaped[:, ifr].reshape(128, 100, order='F')
+                        frames[ifr, :, :] = iframe[20:120, :]
+                        excess_frames[ifr, :, :] = iframe[0:20, :]
 
+                        yield iframe[20:120, :]
+                chunk += 1
 
-            #     # Analog signals are taken from excess data variable
-            #     analog_1 = np.squeeze(np.squeeze(excess_frames[:, 12, 0:80:4]).reshape(20*256, 1))
-            #     analog_2 = np.squeeze(np.squeeze(excess_frames[:, 14, 0:80:4]).reshape(20*256, 1))
-            #     stim_trg = np.squeeze(np.squeeze(excess_frames[:, 8, 0:80:4]).reshape(20*256, 1))
-            #
-            #print('Data shape: ', all_frames.shape)
-            chunk += 1
-            # yield all_frames
+                #     # Analog signals are taken from excess data variable
+                #     analog_1 = np.squeeze(np.squeeze(excess_frames[:, 12, 0:80:4]).reshape(20*256, 1))
+                #     analog_2 = np.squeeze(np.squeeze(excess_frames[:, 14, 0:80:4]).reshape(20*256, 1))
+                #     stim_trg = np.squeeze(np.squeeze(excess_frames[:, 8, 0:80:4]).reshape(20*256, 1))
+                #
 
-    # Create iterator
-    tps_data = DataChunkIterator(
-        data=data_gen(),
-        iter_axis=0,
-        buffer_size=16384,
-        #maxshape=(None, 100, 100)
-    )
+        # Create iterator
+        tps_data = DataChunkIterator(
+            data=data_gen(),
+            iter_axis=0,
+            buffer_size=16384,
+            maxshape=(None, 100, 100)
+        )
 
-    # Add raw data as a TwoPhotonSeries in acquisition
-    meta_tps = metadata['Ophys']['TwoPhotonSeries'][0]
-    tps = TwoPhotonSeries(
-        name=meta_tps['name'],
-        imaging_plane=nwb.imaging_planes[meta_tps['imaging_plane']],
-        data=tps_data,
-        rate=fs
-    )
-    nwb.add_acquisition(tps)
-
-    # TODO: add trials
+        # Add raw data as a TwoPhotonSeries in acquisition
+        meta_tps = metadata['Ophys']['TwoPhotonSeries'][0]
+        tps = TwoPhotonSeries(
+            name=meta_tps['name'],
+            imaging_plane=nwb.imaging_planes[meta_tps['imaging_plane']],
+            data=tps_data,
+            rate=fs
+        )
+        nwb.add_acquisition(tps)
 
     # Saves to NWB file
     with NWBHDF5IO(f_nwb, mode='w') as io:
