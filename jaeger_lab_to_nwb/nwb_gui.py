@@ -3,6 +3,7 @@
 # written for Jaeger Lab
 # ------------------------------------------------------------------------------
 from nwbn_conversion_tools.gui.nwbn_conversion_gui import nwbn_conversion_gui
+from ndx_fret import FRET, FRETSeries
 
 metafile = 'metafile.yml'
 conversion_module = 'conversion_module.py'

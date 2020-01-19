@@ -4,6 +4,7 @@
 from pynwb import NWBFile, NWBHDF5IO, ProcessingModule
 from pynwb.ophys import OpticalChannel, TwoPhotonSeries
 from pynwb.device import Device
+from ndx_fret import FRET, FRETSeries
 from hdmf.data_utils import DataChunkIterator
 
 from datetime import datetime
@@ -73,7 +74,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
     # TODO: some trials seem to be consecutive and others are spaced by larger time gaps
     # TODO: also they seem to have different data. We need to get a better description of trials
     # TODO: and handle them properly
-    all_trials = ['001', '002', '003', '004', '005', '100', '101', '102']
+    all_trials = ['100', '101', '102']
 
     # Get initial metadata
     meta_init = copy.deepcopy(metadata['NWBFile'])
