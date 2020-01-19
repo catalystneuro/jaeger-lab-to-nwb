@@ -74,7 +74,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
     # TODO: some trials seem to be consecutive and others are spaced by larger time gaps
     # TODO: also they seem to have different data. We need to get a better description of trials
     # TODO: and handle them properly
-    all_trials = ['100']#, '101', '102']
+    all_trials = ['100', '101', '102']
 
     # Get initial metadata
     meta_init = copy.deepcopy(metadata['NWBFile'])
@@ -192,7 +192,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
 
         # FRETSeries
         frets_donor= FRETSeries(
-            name=meta_donor['name'],
+            name='donor',
             fluorophore=meta_donor['fluorophore'],
             optical_channel=opt_ch_donor,
             device=device,
@@ -203,7 +203,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
             unit=meta_donor['unit'],
         )
         frets_acceptor= FRETSeries(
-            name=meta_acceptor['name'],
+            name='acceptor',
             fluorophore=meta_acceptor['fluorophore'],
             optical_channel=opt_ch_acceptor,
             device=device,
