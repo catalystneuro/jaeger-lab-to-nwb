@@ -4,7 +4,7 @@ from ndx_fret import FRET, FRETSeries
 from hdmf.data_utils import DataChunkIterator
 
 
-def add_ophys_rsd(nwbfile, source_dir):
+def add_ophys_rsd(nwbfile, source_dir, metadata):
     """
     Reads optophysiology raw data from .rsd files and adds it to nwbfile.
     XXXXXXX_A.rsd - Raw data from donor

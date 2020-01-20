@@ -5,7 +5,7 @@ from pynwb.ecephys import ElectricalSeries
 import spikeextractors as se
 
 
-def add_ecephys_rhd(nwbfile, source_file):
+def add_ecephys_rhd(nwbfile, source_file, metadata):
     """
     Reads extracellular electrophysiology data from .rhd file and adds it to nwbfile.
     """
@@ -16,7 +16,7 @@ def add_ecephys_rhd(nwbfile, source_file):
     n_electrodes, n_samples = traces.shape
 
     # Adds Device
-    device = nwbfile.create_device(name='Device_ecephys')
+    device = nwbfile.create_device(name=metadata['Ecephys']['Device'][0]['name'])
 
     # Electrodes
     electrode_group = nwbfile.create_electrode_group(
