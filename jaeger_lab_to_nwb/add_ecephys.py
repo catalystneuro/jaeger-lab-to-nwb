@@ -3,7 +3,6 @@ from pynwb.device import Device
 from pynwb.ecephys import ElectricalSeries
 
 import spikeextractors as se
-import os
 
 
 def add_ecephys_rhd(nwbfile, source_file):
