@@ -8,18 +8,31 @@ NWBFile:
 Ophys:
   Device:
     - name: Device
-  ImagingPlane:
+  FRET:
+    - name: FRET
+      excitation_lambda: 482.
+      donor: donor
+      acceptor: acceptor
+  FRETSeries:
     - description: ADDME
       device: Device
-      excitation_lambda: 0.0
-      imaging_rate: 200.0
-      indicator: VSFP_Butterfly_1.2
-      location: ADDME
-      name: ImagingPlane
+      emission_lambda: 0.0
+      rate: 200.0
+      fluorophore: mCitrine
+      name: donor
+      unit: ADDME
       optical_channel:
         - description: ADDME
-          emission_lambda: 0.0
-          name: OpticalChannel
-  TwoPhotonSeries:
-    - name: TwoPhotonSeries
-      imaging_plane: ImagingPlane
+          emission_lambda: 450.0
+          name: optical_channel
+    - description: ADDME
+      device: Device
+      emission_lambda: 0.0
+      rate: 200.0
+      fluorophore: mKate2
+      name: acceptor
+      unit: ADDME
+      optical_channel:
+        - description: ADDME
+          emission_lambda: 500.0
+          name: optical_channel

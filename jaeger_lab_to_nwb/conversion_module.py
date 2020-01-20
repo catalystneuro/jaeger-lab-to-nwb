@@ -24,13 +24,13 @@ def read_trial_meta(trial_meta):
         line = f.readline()
         while line:
             if 'acquisition_date' in line:
-                acquisition_date = line.replace('acquisition_date=', '').strip()
+                acquisition_date = line.replace('acquisition_date', '').replace('=', '').strip()
             if 'sample_time' in line:
-                aux = line.replace('sample_time=', '').replace('msec', '').strip()
+                aux = line.replace('sample_time', '').replace('=', '').replace('msec', '').strip()
                 sample_time = float(aux)/1000.
                 sample_rate = 1 / sample_time
             if 'page_frames' in line:
-                aux = line.replace('page_frames=', '').strip()
+                aux = line.replace('page_frames', '').replace('=', '').strip()
                 n_frames = int(aux)
             if addftolist:
                 files_raw.append(line.strip())
@@ -78,9 +78,13 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
 
     # Get initial metadata
     meta_init = copy.deepcopy(metadata['NWBFile'])
-    trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[0]) + ".rsh")
-    file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
-    meta_init['session_start_time'] = datetime.strptime(acquisition_date, '%Y/%m/%d %H:%M:%S')
+    trial_meta_A = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[0]) + "_A.rsh")
+    trial_meta_B = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[0]) + "_B.rsh")
+    file_rsm_A, files_raw_A, acquisition_date_A, sample_rate_A, n_frames_A = read_trial_meta(trial_meta=trial_meta_A)
+    file_rsm_B, files_raw_B, acquisition_date_B, sample_rate_B, n_frames_B = read_trial_meta(trial_meta=trial_meta_B)
+    assert acquisition_date_A == acquisition_date_B, \
+        "Initial acquisition date of channels do not match."
+    meta_init['session_start_time'] = datetime.strptime(acquisition_date_A, '%Y/%m/%d %H:%M:%S')
 
     # Initialize a NWB object
     nwb = NWBFile(**meta_init)
@@ -88,50 +92,38 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
     # Adds trials
     tr_stop = 0.
     for tr in all_trials:
-        trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(tr) + ".rsh")
-        file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
+        trial_meta_A = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(tr) + "_A.rsh")
+        trial_meta_B = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(tr) + "_B.rsh")
+        file_rsm_A, files_raw_A, acquisition_date_A, sample_rate_A, n_frames_A = read_trial_meta(trial_meta=trial_meta_A)
+        file_rsm_B, files_raw_B, acquisition_date_B, sample_rate_B, n_frames_B = read_trial_meta(trial_meta=trial_meta_B)
+
+        # Checks if Acceptor and Donor channels have the same basic parameters
+        assert acquisition_date_A == acquisition_date_B, \
+            "Acquisition date of channels do not match. Trial=" + str(tr)
+        assert sample_rate_A == sample_rate_B, \
+            "Sample rate of channels do not match. Trial=" + str(tr)
+        assert n_frames_A == n_frames_B, \
+            "Number of frames of channels do not match. Trial=" + str(tr)
+
         tr_start = tr_stop
-        tr_stop += n_frames / sample_rate
+        tr_stop += n_frames_A / sample_rate_A
         nwb.add_trial(start_time=tr_start, stop_time=tr_stop)
 
-    # Create and add device
-    device = Device(name=metadata['Ophys']['Device'][0]['name'])
-    nwb.add_device(device)
-
-    # Creates Imaging Plane
-    fs = 200.
-    for meta_ip in metadata['Ophys']['ImagingPlane']:
-        # Optical channel
-        opt_ch = OpticalChannel(
-            name=meta_ip['optical_channel'][0]['name'],
-            description=meta_ip['optical_channel'][0]['description'],
-            emission_lambda=meta_ip['optical_channel'][0]['emission_lambda']
-        )
-        nwb.create_imaging_plane(
-            name=meta_ip['name'],
-            optical_channel=opt_ch,
-            description=meta_ip['description'],
-            device=device,
-            excitation_lambda=meta_ip['excitation_lambda'],
-            imaging_rate=fs,
-            indicator=meta_ip['indicator'],
-            location=meta_ip['location'],
-        )
-
-    # Adds raw imaging data
+    # Iteratively opens files with raw imaging data
     if add_raw:
-        def data_gen():
+        def data_gen(channel):
+            """channel = 'A' or 'B'"""
             n_trials = len(all_trials)
             chunk = 0
             # Iterates over trials, reads .rsd files for each trial number
             while chunk < n_trials:
                 # Read trial-specific metadata file .rsh
-                trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[chunk]) + ".rsh")
+                trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(all_trials[chunk]) + "_" + channel + ".rsh")
                 file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
 
                 # Iterates over all files within the same trial
                 for fn, fraw in enumerate(files_raw):
-                    print('adding trial: ', all_trials[chunk], ': ', 100*fn/len(files_raw), '%')
+                    print('adding channel ' + channel + ', trial: ', all_trials[chunk], ': ', 100*fn/len(files_raw), '%')
                     fpath = os.path.join(dir_cortical_imaging, fraw)
 
                     # Open file as a byte array
@@ -160,22 +152,77 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
                 #
 
         # Create iterator
-        tps_data = DataChunkIterator(
-            data=data_gen(),
+        data_donor = DataChunkIterator(
+            data=data_gen(channel='A'),
             iter_axis=0,
-            buffer_size=16384,
+            buffer_size=10000,
+            maxshape=(None, 100, 100)
+        )
+        data_acceptor = DataChunkIterator(
+            data=data_gen(channel='B'),
+            iter_axis=0,
+            buffer_size=10000,
             maxshape=(None, 100, 100)
         )
 
-        # Add raw data as a TwoPhotonSeries in acquisition
-        meta_tps = metadata['Ophys']['TwoPhotonSeries'][0]
-        tps = TwoPhotonSeries(
-            name=meta_tps['name'],
-            imaging_plane=nwb.imaging_planes[meta_tps['imaging_plane']],
-            data=tps_data,
-            rate=fs
+        # Create and add device
+        device = Device(name=metadata['Ophys']['Device'][0]['name'])
+        nwb.add_device(device)
+
+        # Get FRETSeries metadata
+        meta_fret_series = metadata['Ophys']['FRETSeries']
+        if meta_fret_series[0]['name'] == 'donor':
+            meta_donor = meta_fret_series[0]
+            meta_acceptor = meta_fret_series[1]
+        else:
+            meta_donor = meta_fret_series[1]
+            meta_acceptor = meta_fret_series[0]
+
+        # OpticalChannels
+        opt_ch_donor = OpticalChannel(
+            name=meta_donor['optical_channel'][0]['name'],
+            description=meta_donor['optical_channel'][0]['description'],
+            emission_lambda=meta_donor['optical_channel'][0]['emission_lambda']
         )
-        nwb.add_acquisition(tps)
+        opt_ch_acceptor = OpticalChannel(
+            name=meta_acceptor['optical_channel'][0]['name'],
+            description=meta_acceptor['optical_channel'][0]['description'],
+            emission_lambda=meta_acceptor['optical_channel'][0]['emission_lambda']
+        )
+
+        # FRETSeries
+        frets_donor= FRETSeries(
+            name='donor',
+            fluorophore=meta_donor['fluorophore'],
+            optical_channel=opt_ch_donor,
+            device=device,
+            emission_lambda=meta_donor['emission_lambda'],
+            description=meta_donor['description'],
+            data=data_donor,
+            rate=meta_donor['rate'],
+            unit=meta_donor['unit'],
+        )
+        frets_acceptor= FRETSeries(
+            name='acceptor',
+            fluorophore=meta_acceptor['fluorophore'],
+            optical_channel=opt_ch_acceptor,
+            device=device,
+            emission_lambda=meta_acceptor['emission_lambda'],
+            description=meta_acceptor['description'],
+            data=data_acceptor,
+            rate=meta_acceptor['rate'],
+            unit=meta_acceptor['unit']
+        )
+
+        # Adds FRET to acquisition
+        meta_fret = metadata['Ophys']['FRET'][0]
+        fret = FRET(
+            name=meta_fret['name'],
+            excitation_lambda=meta_fret['excitation_lambda'],
+            donor=frets_donor,
+            acceptor=frets_acceptor
+        )
+        nwb.add_acquisition(fret)
 
     # Saves to NWB file
     with NWBHDF5IO(f_nwb, mode='w') as io:
