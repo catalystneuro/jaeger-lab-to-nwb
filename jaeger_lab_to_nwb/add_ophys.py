@@ -3,8 +3,39 @@ from pynwb.device import Device
 from ndx_fret import FRET, FRETSeries
 from hdmf.data_utils import DataChunkIterator
 
+import numpy as np
+import struct
+import os
 
-def add_ophys_rsd(nwbfile, source_dir, metadata):
+def read_trial_meta(trial_meta):
+    """Opens trial_meta file and read line by line."""
+    files_raw = []
+    addftolist = False
+    with open(trial_meta, "r") as f:
+        line = f.readline()
+        while line:
+            if 'acquisition_date' in line:
+                acquisition_date = line.replace('acquisition_date', '').replace('=', '').strip()
+            if 'sample_time' in line:
+                aux = line.replace('sample_time', '').replace('=', '').replace('msec', '').strip()
+                sample_time = float(aux)/1000.
+                sample_rate = 1 / sample_time
+            if 'page_frames' in line:
+                aux = line.replace('page_frames', '').replace('=', '').strip()
+                n_frames = int(aux)
+            if addftolist:
+                files_raw.append(line.strip())
+            if 'Data-File-List' in line:
+                addftolist = True   # indicates that next lines are file names to be added
+            line = f.readline()
+
+    # Separate .rsm file (bitmap of monitor) from .rsd files (raw data)
+    file_rsm = files_raw[0]
+    files_raw = files_raw[1:]
+    return file_rsm, files_raw, acquisition_date, sample_rate, n_frames
+
+
+def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
     """
     Reads optophysiology raw data from .rsd files and adds it to nwbfile.
     XXXXXXX_A.rsd - Raw data from donor
@@ -13,17 +44,17 @@ def add_ophys_rsd(nwbfile, source_dir, metadata):
     """
     def data_gen(channel):
         """channel = 'A' or 'B'"""
-        n_trials = len(all_trials)
+        n_trials = len(trials)
         chunk = 0
         # Iterates over trials, reads .rsd files for each trial number
         while chunk < n_trials:
             # Read trial-specific metadata file .rsh
-            trial_meta = os.path.join(source_dir, "VSFP_01A0801-" + str(all_trials[chunk]) + "_" + channel + ".rsh")
+            trial_meta = os.path.join(source_dir, "VSFP_01A0801-" + str(trials[chunk]) + "_" + channel + ".rsh")
             file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
 
             # Iterates over all files within the same trial
             for fn, fraw in enumerate(files_raw):
-                print('adding channel ' + channel + ', trial: ', all_trials[chunk], ': ', 100*fn/len(files_raw), '%')
+                print('adding channel ' + channel + ', trial: ', trials[chunk], ': ', 100*fn/len(files_raw), '%')
                 fpath = os.path.join(source_dir, fraw)
 
                 # Open file as a byte array

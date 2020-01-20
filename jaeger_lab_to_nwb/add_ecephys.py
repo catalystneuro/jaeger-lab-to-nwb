@@ -3,6 +3,7 @@ from pynwb.device import Device
 from pynwb.ecephys import ElectricalSeries
 
 import spikeextractors as se
+import numpy as np
 
 
 def add_ecephys_rhd(nwbfile, source_file, metadata):
@@ -13,22 +14,22 @@ def add_ecephys_rhd(nwbfile, source_file, metadata):
     RX = se.IntanRecordingExtractor(file_path=source_file)
     traces = RX.get_traces()
     traces = traces.T
-    n_electrodes, n_samples = traces.shape
+    n_samples, n_electrodes = traces.shape
 
     # Adds Device
     device = nwbfile.create_device(name=metadata['Ecephys']['Device'][0]['name'])
 
     # Electrodes
     electrode_group = nwbfile.create_electrode_group(
-        name='electrode_group',
-        description='',
-        location='location',
+        name=metadata['Ecephys']['ElectrodeGroup'][0]['name'],
+        description=metadata['Ecephys']['ElectrodeGroup'][0]['description'],
+        location=metadata['Ecephys']['ElectrodeGroup'][0]['location'],
         device=device
     )
     for idx in range(n_electrodes):
         nwbfile.add_electrode(
             id=idx,
-            x=0.0, y=0.0, z=0.0,
+            x=np.nan, y=np.nan, z=np.nan,
             imp=np.nan,
             location='location',
             filtering='none',
@@ -42,12 +43,12 @@ def add_ecephys_rhd(nwbfile, source_file, metadata):
 
     # Electrical Series
     ephys_ts = ElectricalSeries(
-        name='ElectricalSeries',
-        description='',
+        name=metadata['Ecephys']['ElectricalSeries'][0]['name'],
+        description=metadata['Ecephys']['ElectricalSeries'][0]['description'],
         data=traces,
         electrodes=electrode_table_region,
-        rate=0.0,
-        starting_time=0.0,
-        conversion=1.0
+        rate=metadata['Ecephys']['ElectricalSeries'][0]['rate'],
+        starting_time=metadata['Ecephys']['ElectricalSeries'][0]['starting_time'],
+        conversion=metadata['Ecephys']['ElectricalSeries'][0]['conversion']
     )
     nwbfile.add_acquisition(ephys_ts)

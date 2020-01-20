@@ -3,44 +3,19 @@
 # ------------------------------------------------------------------------------
 from pynwb import NWBFile, NWBHDF5IO
 
+from jaeger_lab_to_nwb.add_ophys import add_ophys_rsd, read_trial_meta
+from jaeger_lab_to_nwb.add_ecephys import add_ecephys_rhd
+
 from datetime import datetime
 import numpy as np
 import yaml
 import copy
 import struct
-import re
 import os
 
 
-def read_trial_meta(trial_meta):
-    """Opens trial_meta file and read line by line."""
-    files_raw = []
-    addftolist = False
-    with open(trial_meta, "r") as f:
-        line = f.readline()
-        while line:
-            if 'acquisition_date' in line:
-                acquisition_date = line.replace('acquisition_date', '').replace('=', '').strip()
-            if 'sample_time' in line:
-                aux = line.replace('sample_time', '').replace('=', '').replace('msec', '').strip()
-                sample_time = float(aux)/1000.
-                sample_rate = 1 / sample_time
-            if 'page_frames' in line:
-                aux = line.replace('page_frames', '').replace('=', '').strip()
-                n_frames = int(aux)
-            if addftolist:
-                files_raw.append(line.strip())
-            if 'Data-File-List' in line:
-                addftolist = True   # indicates that next lines are file names to be added
-            line = f.readline()
-
-    # Separate .rsm file (bitmap of monitor) from .rsd files (raw data)
-    file_rsm = files_raw[0]
-    files_raw = files_raw[1:]
-    return file_rsm, files_raw, acquisition_date, sample_rate, n_frames
-
-
-def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
+def conversion_function(source_paths, f_nwb, metadata, add_raw, add_ecephys,
+                        **kwargs):
     """
     Copy data stored in a set of .npz files to a single NWB file.
 
@@ -49,7 +24,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
     source_paths : dict
         Dictionary with paths to source files/directories. e.g.:
         {'dir_cortical_imaging': {'type': 'dir', 'path': ''},
-         'file2': {'type': 'file', 'path': ''}}
+         'file_ecepys_rhd': {'type': 'file', 'path': ''}}
     f_nwb : str
         Path to output NWB file, e.g. 'my_file.nwb'.
     metadata : dict
@@ -60,11 +35,14 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
 
     # Source files and directories
     dir_cortical_imaging = None
+    file_ecephys_rhd = None
     for k, v in source_paths.items():
         if source_paths[k]['path'] != '':
             fname = source_paths[k]['path']
             if k == 'dir_cortical_imaging':
                 dir_cortical_imaging = v['path']
+            if k == 'file_ecephys_rhd':
+                file_ecephys_rhd = v['path']
 
     # All trials
     # TODO: some trials seem to be consecutive and others are spaced by larger time gaps
@@ -110,14 +88,15 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw=False, **kwargs):
         add_ophys_rsd(
             nwbfile=nwbfile,
             source_dir=dir_cortical_imaging,
-            metadata=metadata
+            metadata=metadata,
+            trials=all_trials
         )
 
     # Adding ecephys
     if add_ecephys:
         add_ecephys_rhd(
             nwbfile=nwbfile,
-            source_file='',
+            source_file=file_ecephys_rhd,
             metadata=metadata
         )
 
