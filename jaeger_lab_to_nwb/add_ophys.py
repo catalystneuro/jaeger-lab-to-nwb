@@ -101,13 +101,8 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
     nwbfile.add_device(device)
 
     # Get FRETSeries metadata
-    meta_fret_series = metadata['Ophys']['FRETSeries']
-    if meta_fret_series[0]['name'] == 'donor':
-        meta_donor = meta_fret_series[0]
-        meta_acceptor = meta_fret_series[1]
-    else:
-        meta_donor = meta_fret_series[1]
-        meta_acceptor = meta_fret_series[0]
+    meta_donor = metadata['Ophys']['FRET'][0]['donor']
+    meta_acceptor = metadata['Ophys']['FRET'][0]['acceptor']
 
     # OpticalChannels
     opt_ch_donor = OpticalChannel(
@@ -127,7 +122,6 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
         fluorophore=meta_donor['fluorophore'],
         optical_channel=opt_ch_donor,
         device=device,
-        emission_lambda=meta_donor['emission_lambda'],
         description=meta_donor['description'],
         data=data_donor,
         rate=meta_donor['rate'],
@@ -138,7 +132,6 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
         fluorophore=meta_acceptor['fluorophore'],
         optical_channel=opt_ch_acceptor,
         device=device,
-        emission_lambda=meta_acceptor['emission_lambda'],
         description=meta_acceptor['description'],
         data=data_acceptor,
         rate=meta_acceptor['rate'],

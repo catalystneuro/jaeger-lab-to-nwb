@@ -7,7 +7,7 @@ NWBFile:
   session_start_time: 2018-08-09 10:00:00
 Ecephys:
   Device:
-    - name: Device_ecephys
+    - name: device_ecephys
   ElectricalSeries:
     - description: ADDME
       name: ElectricalSeries
@@ -16,18 +16,18 @@ Ecephys:
       conversion: 1.0
   ElectrodeGroup:
     - description: ADDME
-      device: Device_ecephys
+      device: device_ecephys
       location: ADDME
       name: ElectrodeGroup
 Ophys:
   Device:
-    - name: Device_ophys
+    - name: device_ophys
   FRET:
     - name: FRET
       excitation_lambda: 482.
       donor:
-      - description: ADDME
-        device: Device
+        description: ADDME
+        device: device_ophys
         rate: 200.0
         fluorophore: mCitrine
         name: donor
@@ -37,8 +37,8 @@ Ophys:
             emission_lambda: 529.0
             name: optical_channel
       acceptor:
-      - description: ADDME
-        device: Device
+        description: ADDME
+        device: device_ophys
         rate: 200.0
         fluorophore: mKate2
         name: acceptor
