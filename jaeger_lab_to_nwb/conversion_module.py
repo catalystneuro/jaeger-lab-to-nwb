@@ -68,25 +68,27 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw, add_ecephys,
     # Initialize a NWB object
     nwbfile = NWBFile(**meta_init)
 
-    # Adding trials
-    tr_stop = 0.
-    for tr in all_trials:
-        trial_meta_A = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(tr) + "_A.rsh")
-        trial_meta_B = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(tr) + "_B.rsh")
-        file_rsm_A, files_raw_A, acquisition_date_A, sample_rate_A, n_frames_A = read_trial_meta(trial_meta=trial_meta_A)
-        file_rsm_B, files_raw_B, acquisition_date_B, sample_rate_B, n_frames_B = read_trial_meta(trial_meta=trial_meta_B)
+    # Adding trials from Optophys
+    ophys_trials = False
+    if ophys_trials:
+        tr_stop = 0.
+        for tr in all_trials:
+            trial_meta_A = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(tr) + "_A.rsh")
+            trial_meta_B = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + str(tr) + "_B.rsh")
+            file_rsm_A, files_raw_A, acquisition_date_A, sample_rate_A, n_frames_A = read_trial_meta(trial_meta=trial_meta_A)
+            file_rsm_B, files_raw_B, acquisition_date_B, sample_rate_B, n_frames_B = read_trial_meta(trial_meta=trial_meta_B)
 
-        # Checks if Acceptor and Donor channels have the same basic parameters
-        assert acquisition_date_A == acquisition_date_B, \
-            "Acquisition date of channels do not match. Trial=" + str(tr)
-        assert sample_rate_A == sample_rate_B, \
-            "Sample rate of channels do not match. Trial=" + str(tr)
-        assert n_frames_A == n_frames_B, \
-            "Number of frames of channels do not match. Trial=" + str(tr)
+            # Checks if Acceptor and Donor channels have the same basic parameters
+            assert acquisition_date_A == acquisition_date_B, \
+                "Acquisition date of channels do not match. Trial=" + str(tr)
+            assert sample_rate_A == sample_rate_B, \
+                "Sample rate of channels do not match. Trial=" + str(tr)
+            assert n_frames_A == n_frames_B, \
+                "Number of frames of channels do not match. Trial=" + str(tr)
 
-        tr_start = tr_stop
-        tr_stop += n_frames_A / sample_rate_A
-        nwbfile.add_trial(start_time=tr_start, stop_time=tr_stop)
+            tr_start = tr_stop
+            tr_stop += n_frames_A / sample_rate_A
+            nwbfile.add_trial(start_time=tr_start, stop_time=tr_stop)
 
     # Adding raw imaging data
     if add_raw:
