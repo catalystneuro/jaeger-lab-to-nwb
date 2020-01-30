@@ -52,3 +52,5 @@ def add_ecephys_rhd(nwbfile, source_file, metadata):
         conversion=metadata['Ecephys']['ElectricalSeries'][0]['conversion']
     )
     nwbfile.add_acquisition(ephys_ts)
+
+    return nwbfile
