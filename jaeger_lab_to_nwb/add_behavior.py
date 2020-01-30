@@ -1,5 +1,6 @@
 from pynwb import NWBFile, NWBHDF5IO
 from pynwb.device import Device
+from pynwb.behavior import BehavioralTimeSeries
 
 import numpy as np
 import pandas as pd
@@ -11,11 +12,11 @@ def add_behavior_labview(nwbfile, source_dir, metadata):
     Reads behavioral data from txt files and adds it to nwbfile.
     """
 
-    fname = 'GPi4_020619_AP3_4_OPTO_tr.txt'
-    fpath = os.path.join(source_dir, fname)
-    df_trials_summary = pd.read_csv(fpath, sep='\t', index_col=False)
-
     # Adds trials
+    fname_summary = 'GPi4_020619_AP3_4_OPTO_tr.txt'
+    fpath_summary = os.path.join(source_dir, fname_summary)
+    df_trials_summary = pd.read_csv(fpath_summary, sep='\t', index_col=False)
+
     nwbfile.add_trial_column(
         name='results',
         description="0 means sucess (rewarded trial), 1 means licks during intitial "\
@@ -82,21 +83,38 @@ def add_behavior_labview(nwbfile, source_dir, metadata):
         nwbfile.add_trial(
             start_time=row['StartT'],
             stop_time=row['EndT'],
-            results=row['Result'],
+            results=int(row['Result']),
             init_t=row['InitT'],
-            sample_t=row['SampleT'],
+            sample_t=int(row['SampleT']),
             prob_left=row['ProbLeft'],
             rew_t=row['RewT'],
-            l_rew_n=row['LRew#'],
-            r_rew_n=row['RRew#'],
+            l_rew_n=int(row['LRew#']),
+            r_rew_n=int(row['RRew#']),
             inter_t=row['InterT'],
-            l_trial=row['LTrial'],
-            free_lick=row['Free Lick'],
-            opto_cond=row['OptoCond'],
-            opto_trial=row['OptoTrial'],
+            l_trial=int(row['LTrial']),
+            free_lick=int(row['Free Lick']),
+            opto_cond=int(row['OptoCond']),
+            opto_trial=int(row['OptoTrial']),
         )
 
-    # Adds Device
-    device = nwbfile.create_device(name=metadata['Behavior']['Device'][0]['name'])
+    # Adds continuous behavioral data
+    fname_lick = 'GPi4_020619_AP3_4_OPTO.txt'
+    fpath_lick = os.path.join(source_dir, fname_lick)
+    df_lick = pd.read_csv(fpath_lick, sep='\t', index_col=False)
+
+    behavioral_ts = BehavioralTimeSeries()
+    behavioral_ts.create_timeseries(
+        name="left_lick",
+        data=df_lick['Lick 1'].to_numpy(),
+        timestamps=df_lick['Time'].to_numpy(),
+        description="ADDME"
+    )
+    behavioral_ts.create_timeseries(
+        name="right_lick",
+        data=df_lick['Lick 2'].to_numpy(),
+        timestamps=df_lick['Time'].to_numpy(),
+        description="ADDME"
+    )
+    nwbfile.add_acquisition(behavioral_ts)
 
     return nwbfile
