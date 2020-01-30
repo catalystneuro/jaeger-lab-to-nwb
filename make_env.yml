@@ -10,11 +10,14 @@ dependencies:
 - numpy
 - scipy
 - jupyter
+- pyside2
 - matplotlib
 - cycler
 - h5py
 - pynwb
 - hdmf
 - pip:
-  - git+https://github.com/NeurodataWithoutBorders/nwbn-conversion-tools
+  #- pyintan
+  - git+https://github.com/alejoe91/pyintan
+  #- git+https://github.com/NeurodataWithoutBorders/nwbn-conversion-tools
   - -e .
