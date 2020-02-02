@@ -21,9 +21,16 @@ kwargs_fields = {
     'add_behavior':True
 }
 
+# Extension-specific gui forms
+extension_forms = {
+    'FRET': GroupFRET,
+    'FRETSeries': GroupFRETSeries
+}
+
 nwbn_conversion_gui(
     metafile=metafile,
     conversion_module=conversion_module,
     source_paths=source_paths,
-    kwargs_fields=kwargs_fields
+    kwargs_fields=kwargs_fields,
+    extension_forms=extension_forms
 )
