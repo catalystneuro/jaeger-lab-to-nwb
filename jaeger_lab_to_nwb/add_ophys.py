@@ -1,4 +1,4 @@
-from pynwb.ophys import OpticalChannel, TwoPhotonSeries
+from pynwb.ophys import OpticalChannel
 from pynwb.device import Device
 from ndx_fret import FRET, FRETSeries
 from hdmf.data_utils import DataChunkIterator
@@ -6,6 +6,7 @@ from hdmf.data_utils import DataChunkIterator
 import numpy as np
 import struct
 import os
+
 
 def read_trial_meta(trial_meta):
     """Opens trial_meta file and read line by line."""
@@ -117,7 +118,7 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
     )
 
     # FRETSeries
-    frets_donor= FRETSeries(
+    frets_donor = FRETSeries(
         name='donor',
         fluorophore=meta_donor['fluorophore'],
         optical_channel=opt_ch_donor,
@@ -127,7 +128,7 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
         rate=meta_donor['rate'],
         unit=meta_donor['unit'],
     )
-    frets_acceptor= FRETSeries(
+    frets_acceptor = FRETSeries(
         name='acceptor',
         fluorophore=meta_acceptor['fluorophore'],
         optical_channel=opt_ch_acceptor,

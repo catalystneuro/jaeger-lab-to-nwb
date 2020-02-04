@@ -8,10 +8,8 @@ from jaeger_lab_to_nwb.add_ecephys import add_ecephys_rhd
 from jaeger_lab_to_nwb.add_behavior import add_behavior_labview
 
 from datetime import datetime
-import numpy as np
 import yaml
 import copy
-import struct
 import os
 
 
@@ -124,7 +122,6 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw, add_ecephys,
 # If called directly fom terminal
 if __name__ == '__main__':
     import sys
-    import yaml
 
     f1 = sys.argv[1]
     f2 = sys.argv[2]
@@ -138,7 +135,7 @@ if __name__ == '__main__':
     # Load metadata from YAML file
     metafile = sys.argv[3]
     with open(metafile) as f:
-       metadata = yaml.safe_load(f)
+        metadata = yaml.safe_load(f)
 
     conversion_function(source_paths=source_paths,
                         f_nwb=f_nwb,

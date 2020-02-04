@@ -8,6 +8,7 @@ from ndx_fret.nwbn_gui_forms import GroupFRET, GroupFRETSeries
 
 import os
 
+
 def main():
     here = os.path.dirname(os.path.realpath(__file__))
     metafile = os.path.join(here, 'metafile.yml')
@@ -21,9 +22,9 @@ def main():
 
     # Lab-specific kwargs
     kwargs_fields = {
-        'add_raw':True,
-        'add_ecephys':True,
-        'add_behavior':True
+        'add_raw': True,
+        'add_ecephys': True,
+        'add_behavior': True
     }
 
     # Extension-specific gui forms

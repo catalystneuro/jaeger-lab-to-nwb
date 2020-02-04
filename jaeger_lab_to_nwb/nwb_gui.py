@@ -4,6 +4,7 @@
 # ------------------------------------------------------------------------------
 from nwbn_conversion_tools.gui.nwbn_conversion_gui import nwbn_conversion_gui
 from ndx_fret import FRET, FRETSeries
+from ndx_fret.nwbn_gui_forms import GroupFRET, GroupFRETSeries
 
 metafile = 'metafile.yml'
 conversion_module = 'conversion_module.py'
@@ -16,9 +17,9 @@ source_paths['dir_behavior_labview'] = {'type': 'dir', 'path': ''}
 
 # Lab-specific kwargs
 kwargs_fields = {
-    'add_raw':False,
-    'add_ecephys':False,
-    'add_behavior':True
+    'add_raw': False,
+    'add_ecephys': False,
+    'add_behavior': True
 }
 
 # Extension-specific gui forms
