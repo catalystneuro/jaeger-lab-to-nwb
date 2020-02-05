@@ -149,7 +149,7 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
             description=meta_donor['description'],
             data=data_donor,
             starting_time=relative_start_time,
-            rate=sample_rate,
+            rate=sample_rate_A,
             unit=meta_donor['unit'],
         )
         frets_acceptor = FRETSeries(
@@ -160,7 +160,7 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
             description=meta_acceptor['description'],
             data=data_acceptor,
             starting_time=relative_start_time,
-            rate=sample_rate,
+            rate=sample_rate_B,
             unit=meta_acceptor['unit']
         )
 
