@@ -3,6 +3,7 @@ from pynwb.device import Device
 from ndx_fret import FRET, FRETSeries
 from hdmf.data_utils import DataChunkIterator
 
+from datetime import datetime
 import numpy as np
 import struct
 import os
@@ -43,58 +44,39 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
     XXXXXXX_B.rsd - Raw data from acceptor
     XXXXXXXXX.rsh - Header data
     """
-    def data_gen(channel):
+    def data_gen(channel, trial):
         """channel = 'A' or 'B'"""
-        n_trials = len(trials)
-        chunk = 0
-        # Iterates over trials, reads .rsd files for each trial number
-        while chunk < n_trials:
-            # Read trial-specific metadata file .rsh
-            trial_meta = os.path.join(source_dir, "VSFP_01A0801-" + str(trials[chunk]) + "_" + channel + ".rsh")
-            file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
+        # Read trial-specific metadata file .rsh
+        trial_meta = os.path.join(source_dir, "VSFP_01A0801-" + str(trial) + "_" + channel + ".rsh")
+        file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
 
-            # Iterates over all files within the same trial
-            for fn, fraw in enumerate(files_raw):
-                print('adding channel ' + channel + ', trial: ', trials[chunk], ': ', 100*fn/len(files_raw), '%')
-                fpath = os.path.join(source_dir, fraw)
+        # Iterates over all files within the same trial
+        for fn, fraw in enumerate(files_raw):
+            print('adding channel ' + channel + ', trial: ', str(trial), ': ', 100*fn/len(files_raw), '%')
+            fpath = os.path.join(source_dir, fraw)
 
-                # Open file as a byte array
-                with open(fpath, "rb") as f:
-                    byte = f.read(1000000000)
-                # Data as word array: 'h' signed, 'H' unsigned
-                words = np.array(struct.unpack('h'*(len(byte)//2), byte))
+            # Open file as a byte array
+            with open(fpath, "rb") as f:
+                byte = f.read(1000000000)
+            # Data as word array: 'h' signed, 'H' unsigned
+            words = np.array(struct.unpack('h'*(len(byte)//2), byte))
 
-                # Iterates over frames within the same file (n_frames, 100, 100)
-                n_frames = int(len(words)/12800)
-                words_reshaped = words.reshape(12800, n_frames, order='F')
-                frames = np.zeros((n_frames, 100, 100))
-                excess_frames = np.zeros((n_frames, 20, 100))
-                for ifr in range(n_frames):
-                    iframe = -words_reshaped[:, ifr].reshape(128, 100, order='F').astype('int16')
-                    frames[ifr, :, :] = iframe[20:120, :]
-                    excess_frames[ifr, :, :] = iframe[0:20, :]
+            # Iterates over frames within the same file (n_frames, 100, 100)
+            n_frames = int(len(words)/12800)
+            words_reshaped = words.reshape(12800, n_frames, order='F')
+            frames = np.zeros((n_frames, 100, 100))
+            excess_frames = np.zeros((n_frames, 20, 100))
+            for ifr in range(n_frames):
+                iframe = -words_reshaped[:, ifr].reshape(128, 100, order='F').astype('int16')
+                frames[ifr, :, :] = iframe[20:120, :]
+                excess_frames[ifr, :, :] = iframe[0:20, :]
 
-                    yield iframe[20:120, :]
-            chunk += 1
+                yield iframe[20:120, :]
 
             #     # Analog signals are taken from excess data variable
             #     analog_1 = np.squeeze(np.squeeze(excess_frames[:, 12, 0:80:4]).reshape(20*256, 1))
             #     analog_2 = np.squeeze(np.squeeze(excess_frames[:, 14, 0:80:4]).reshape(20*256, 1))
             #     stim_trg = np.squeeze(np.squeeze(excess_frames[:, 8, 0:80:4]).reshape(20*256, 1))
-
-    # Create iterator
-    data_donor = DataChunkIterator(
-        data=data_gen(channel='A'),
-        iter_axis=0,
-        buffer_size=10000,
-        maxshape=(None, 100, 100)
-    )
-    data_acceptor = DataChunkIterator(
-        data=data_gen(channel='B'),
-        iter_axis=0,
-        buffer_size=10000,
-        maxshape=(None, 100, 100)
-    )
 
     # Create and add device
     device = Device(name=metadata['Ophys']['Device'][0]['name'])
@@ -116,36 +98,80 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
         emission_lambda=meta_acceptor['optical_channel'][0]['emission_lambda']
     )
 
-    # FRETSeries
-    frets_donor = FRETSeries(
-        name='donor',
-        fluorophore=meta_donor['fluorophore'],
-        optical_channel=opt_ch_donor,
-        device=device,
-        description=meta_donor['description'],
-        data=data_donor,
-        rate=meta_donor['rate'],
-        unit=meta_donor['unit'],
-    )
-    frets_acceptor = FRETSeries(
-        name='acceptor',
-        fluorophore=meta_acceptor['fluorophore'],
-        optical_channel=opt_ch_acceptor,
-        device=device,
-        description=meta_acceptor['description'],
-        data=data_acceptor,
-        rate=meta_acceptor['rate'],
-        unit=meta_acceptor['unit']
-    )
+    # Iterate over trials, creates a FRET group per trial
+    for tr in trials:
+        # Read trial-specific metadata file .rsh
+        trial_meta_A = os.path.join(source_dir, "VSFP_01A0801-" + str(tr) + "_A.rsh")
+        trial_meta_B = os.path.join(source_dir, "VSFP_01A0801-" + str(tr) + "_B.rsh")
+        file_rsm_A, files_raw_A, acquisition_date_A, sample_rate_A, n_frames_A = read_trial_meta(trial_meta=trial_meta_A)
+        file_rsm_B, files_raw_B, acquisition_date_B, sample_rate_B, n_frames_B = read_trial_meta(trial_meta=trial_meta_B)
 
-    # Adds FRET to acquisition
-    meta_fret = metadata['Ophys']['FRET'][0]
-    fret = FRET(
-        name=meta_fret['name'],
-        excitation_lambda=meta_fret['excitation_lambda'],
-        donor=frets_donor,
-        acceptor=frets_acceptor
-    )
-    nwbfile.add_acquisition(fret)
+        absolute_start_time = datetime.strptime(acquisition_date_A, '%Y/%m/%d %H:%M:%S')
+        relative_start_time = float((absolute_start_time - nwbfile.session_start_time.replace(tzinfo=None)).seconds)
+
+        # Checks if Acceptor and Donor channels have the same basic parameters
+        assert acquisition_date_A == acquisition_date_B, \
+            "Acquisition date of channels do not match. Trial=" + str(tr)
+        assert sample_rate_A == sample_rate_B, \
+            "Sample rate of channels do not match. Trial=" + str(tr)
+        assert n_frames_A == n_frames_B, \
+            "Number of frames of channels do not match. Trial=" + str(tr)
+        assert relative_start_time >= 0., \
+            "Starting time is negative. Trial=" + str(tr)
+
+        # Adds trial
+        tr_stop = relative_start_time + n_frames_A / sample_rate_A
+        nwbfile.add_trial(
+            start_time=relative_start_time,
+            stop_time=tr_stop
+        )
+
+        # Create iterator
+        data_donor = DataChunkIterator(
+            data=data_gen(channel='A', trial=tr),
+            iter_axis=0,
+            buffer_size=10000,
+            maxshape=(None, 100, 100)
+        )
+        data_acceptor = DataChunkIterator(
+            data=data_gen(channel='B', trial=tr),
+            iter_axis=0,
+            buffer_size=10000,
+            maxshape=(None, 100, 100)
+        )
+
+        # FRETSeries
+        frets_donor = FRETSeries(
+            name='donor',
+            fluorophore=meta_donor['fluorophore'],
+            optical_channel=opt_ch_donor,
+            device=device,
+            description=meta_donor['description'],
+            data=data_donor,
+            starting_time=relative_start_time,
+            rate=sample_rate,
+            unit=meta_donor['unit'],
+        )
+        frets_acceptor = FRETSeries(
+            name='acceptor',
+            fluorophore=meta_acceptor['fluorophore'],
+            optical_channel=opt_ch_acceptor,
+            device=device,
+            description=meta_acceptor['description'],
+            data=data_acceptor,
+            starting_time=relative_start_time,
+            rate=sample_rate,
+            unit=meta_acceptor['unit']
+        )
+
+        # Adds FRET to acquisition
+        meta_fret = metadata['Ophys']['FRET'][0]
+        fret = FRET(
+            name=meta_fret['name'] + '_' + str(tr),
+            excitation_lambda=meta_fret['excitation_lambda'],
+            donor=frets_donor,
+            acceptor=frets_acceptor
+        )
+        nwbfile.add_acquisition(fret)
 
     return nwbfile
