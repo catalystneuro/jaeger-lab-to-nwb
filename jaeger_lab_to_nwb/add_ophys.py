@@ -70,7 +70,7 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
                 frames = np.zeros((n_frames, 100, 100))
                 excess_frames = np.zeros((n_frames, 20, 100))
                 for ifr in range(n_frames):
-                    iframe = -words_reshaped[:, ifr].reshape(128, 100, order='F')
+                    iframe = -words_reshaped[:, ifr].reshape(128, 100, order='F').astype('int16')
                     frames[ifr, :, :] = iframe[20:120, :]
                     excess_frames[ifr, :, :] = iframe[0:20, :]
 
@@ -81,7 +81,6 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
             #     analog_1 = np.squeeze(np.squeeze(excess_frames[:, 12, 0:80:4]).reshape(20*256, 1))
             #     analog_2 = np.squeeze(np.squeeze(excess_frames[:, 14, 0:80:4]).reshape(20*256, 1))
             #     stim_trg = np.squeeze(np.squeeze(excess_frames[:, 8, 0:80:4]).reshape(20*256, 1))
-            #
 
     # Create iterator
     data_donor = DataChunkIterator(
@@ -102,8 +101,8 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
     nwbfile.add_device(device)
 
     # Get FRETSeries metadata
-    meta_donor = metadata['Ophys']['FRET'][0]['donor']
-    meta_acceptor = metadata['Ophys']['FRET'][0]['acceptor']
+    meta_donor = metadata['Ophys']['FRET'][0]['donor'][0]
+    meta_acceptor = metadata['Ophys']['FRET'][0]['acceptor'][0]
 
     # OpticalChannels
     opt_ch_donor = OpticalChannel(
