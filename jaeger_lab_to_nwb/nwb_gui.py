@@ -22,6 +22,11 @@ kwargs_fields = {
     'add_behavior': True
 }
 
+# Extensions modules and classes
+extension_modules = {
+    'ndx_fret': ['FRET', 'FRETSeries']
+}
+
 # Extension-specific gui forms
 extension_forms = {
     'FRET': GroupFRET,
@@ -33,5 +38,6 @@ nwbn_conversion_gui(
     conversion_module=conversion_module,
     source_paths=source_paths,
     kwargs_fields=kwargs_fields,
+    extension_modules=extension_modules,
     extension_forms=extension_forms
 )
