@@ -6,10 +6,22 @@ from nwbn_conversion_tools.gui.nwbn_conversion_gui import nwbn_conversion_gui
 from ndx_fret import FRET, FRETSeries
 from ndx_fret.nwbn_gui_forms import GroupFRET, GroupFRETSeries
 
+import sys
 import os
 
 
 def main():
+    """
+    Usage: python conversion_module.py [raw_nlx_dir] [processed_mat_dir]
+    [sorted_spikes_nex5_file] [behavior_file] [metadata_file] [output_file]
+    [-skipraw] [-skipprocessed] [-lfpiterator] [-dontcopy]
+    """
+    if len(sys.argv) > 1:
+        experiment = sys.argv[1]
+        print("Running nwbn-gui for experiment: ", experiment)
+    else:
+        print("Running nwbn-gui without specific experiment")
+
     here = os.path.dirname(os.path.realpath(__file__))
     metafile = os.path.join(here, 'metafile.yml')
     conversion_module = os.path.join(here, 'conversion_module.py')

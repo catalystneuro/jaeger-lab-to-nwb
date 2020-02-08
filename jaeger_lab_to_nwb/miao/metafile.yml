@@ -1,0 +1,49 @@
+NWBFile:
+  experimenter: Yunmiao Wang
+  identifier: ADDME
+  institution: Emory University
+  lab: Jaeger lab
+  session_description: ADDME
+  session_start_time: 2018-08-09 10:00:00
+Ecephys:
+  Device:
+    - name: device_ecephys
+  ElectricalSeries:
+    - description: ADDME
+      name: ElectricalSeries
+      rate: 0.0
+      starting_time: 0.0
+      conversion: 1.0
+  ElectrodeGroup:
+    - description: ADDME
+      device: device_ecephys
+      location: ADDME
+      name: ElectrodeGroup
+Ophys:
+  Device:
+    - name: device_ophys
+  FRET:
+    - name: FRET
+      excitation_lambda: 482.
+      donor:
+        - description: ADDME
+          device: device_ophys
+          rate: 200.0
+          fluorophore: mCitrine
+          name: donor
+          unit: ADDME
+          optical_channel:
+            - description: ADDME
+              emission_lambda: 529.0
+              name: optical_channel
+      acceptor:
+        - description: ADDME
+          device: device_ophys
+          rate: 200.0
+          fluorophore: mKate2
+          name: acceptor
+          unit: ADDME
+          optical_channel:
+            - description: ADDME
+              emission_lambda: 633.0
+              name: optical_channel
