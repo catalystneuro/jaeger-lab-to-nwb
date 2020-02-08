@@ -1,6 +1,5 @@
 from pynwb.ecephys import ElectricalSeries
-
-import spikeextractors as se
+from jaeger_lab_to_nwb.lisu.load_intan import load_intan
 import numpy as np
 
 
@@ -9,10 +8,11 @@ def add_ecephys_rhd(nwbfile, source_file, metadata):
     Reads extracellular electrophysiology data from .rhd file and adds it to nwbfile.
     """
 
-    RX = se.IntanRecordingExtractor(file_path=source_file)
-    traces = RX.get_traces()
-    traces = traces.T
-    n_samples, n_electrodes = traces.shape
+    file_data = load_intan.read_data(filename=source_file)
+    # Gets only valid timestamps
+    valid_ts = file_data['board_dig_in_data'][0]
+    analog_data = file_data['amplifier_data'][:, valid_ts].T
+    n_samples, n_electrodes = analog_data.shape
 
     # Adds Device
     device = nwbfile.create_device(name=metadata['Ecephys']['Device'][0]['name'])
