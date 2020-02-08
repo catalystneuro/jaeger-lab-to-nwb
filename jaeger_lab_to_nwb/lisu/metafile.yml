@@ -19,31 +19,3 @@ Ecephys:
       device: device_ecephys
       location: ADDME
       name: ElectrodeGroup
-Ophys:
-  Device:
-    - name: device_ophys
-  FRET:
-    - name: FRET
-      excitation_lambda: 482.
-      donor:
-        - description: ADDME
-          device: device_ophys
-          rate: 200.0
-          fluorophore: mCitrine
-          name: donor
-          unit: ADDME
-          optical_channel:
-            - description: ADDME
-              emission_lambda: 529.0
-              name: optical_channel
-      acceptor:
-        - description: ADDME
-          device: device_ophys
-          rate: 200.0
-          fluorophore: mKate2
-          name: acceptor
-          unit: ADDME
-          optical_channel:
-            - description: ADDME
-              emission_lambda: 633.0
-              name: optical_channel
