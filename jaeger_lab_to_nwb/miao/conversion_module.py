@@ -4,7 +4,6 @@
 from pynwb import NWBFile, NWBHDF5IO
 
 from jaeger_lab_to_nwb.add_ophys import add_ophys_rsd, read_trial_meta
-from jaeger_lab_to_nwb.add_ecephys import add_ecephys_rhd
 from jaeger_lab_to_nwb.add_behavior import add_behavior_labview
 
 from datetime import datetime
@@ -13,7 +12,7 @@ import copy
 import os
 
 
-def conversion_function(source_paths, f_nwb, metadata, add_raw, add_ecephys,
+def conversion_function(source_paths, f_nwb, metadata, add_raw,
                         add_behavior, **kwargs):
     """
     Copy data stored in a set of .npz files to a single NWB file.
@@ -23,7 +22,6 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw, add_ecephys,
     source_paths : dict
         Dictionary with paths to source files/directories. e.g.:
         {'dir_cortical_imaging': {'type': 'dir', 'path': ''},
-         'file_ecepys_rhd': {'type': 'file', 'path': ''},
          'dir_behavior_labview': {'type': 'dir', 'path': ''}}
     f_nwb : str
         Path to output NWB file, e.g. 'my_file.nwb'.
@@ -35,14 +33,11 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw, add_ecephys,
 
     # Source files and directories
     dir_cortical_imaging = None
-    file_ecephys_rhd = None
     dir_behavior_labview = None
     for k, v in source_paths.items():
-        if source_paths[k]['path'] != '':
+        if v['path'] != '':
             if k == 'dir_cortical_imaging':
                 dir_cortical_imaging = v['path']
-            if k == 'file_ecephys_rhd':
-                file_ecephys_rhd = v['path']
             if k == 'dir_behavior_labview':
                 dir_behavior_labview = v['path']
 
@@ -72,14 +67,6 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw, add_ecephys,
             source_dir=dir_cortical_imaging,
             metadata=metadata,
             trials=all_trials
-        )
-
-    # Adding ecephys
-    if add_ecephys:
-        nwbfile = add_ecephys_rhd(
-            nwbfile=nwbfile,
-            source_file=file_ecephys_rhd,
-            metadata=metadata
         )
 
     # Adding behavior

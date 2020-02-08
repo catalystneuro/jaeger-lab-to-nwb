@@ -17,13 +17,11 @@ def main():
     # Source paths
     source_paths = dict()
     source_paths['dir_cortical_imaging'] = {'type': 'dir', 'path': ''}
-    source_paths['file_ecephys_rhd'] = {'type': 'file', 'path': ''}
     source_paths['dir_behavior_labview'] = {'type': 'dir', 'path': ''}
 
     # Lab-specific kwargs
     kwargs_fields = {
-        'add_raw': False,
-        'add_ecephys': False,
+        'add_raw': True,
         'add_behavior': True
     }
 
