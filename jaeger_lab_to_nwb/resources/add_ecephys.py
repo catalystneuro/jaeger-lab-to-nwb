@@ -1,7 +1,9 @@
 from pynwb.ecephys import ElectricalSeries
 from hdmf.data_utils import DataChunkIterator
 from jaeger_lab_to_nwb.resources.load_intan import load_intan, read_header
+
 import numpy as np
+import pandas as pd
 import os
 
 
@@ -29,7 +31,11 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
     fid = open(all_files[0], 'rb')
     header = read_header.read_header(fid)
     sampling_rate = header['sample_rate']
-    n_electrodes = header['num_amplifier_channels']
+
+    # Gets electrodes info from first rhd file
+    file_data = load_intan.read_data(filename=all_files[0])
+    electrodes_info = file_data['amplifier_channels']
+    n_electrodes = len(electrodes_info)
 
     # Adds Device
     device = nwbfile.create_device(name=metadata['Ecephys']['Device'][0]['name'])
@@ -46,7 +52,19 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
 
     # Electrodes
     if electrodes_file is not None:  # if an electrodes info file was provided
-        pass
+        df_electrodes = pd.read_csv(electrodes_file, index_col='Channel Number')
+        for idx, elec in enumerate(electrodes_info):
+            elec_name = elec['native_channel_name']
+            elec_group = df_electrodes.loc[elec_name]['electrode_group']
+            elec_imp = df_electrodes.loc[elec_name]['Impedance Magnitude at 1000 Hz (ohms)']
+            nwbfile.add_electrode(
+                id=idx,
+                x=np.nan, y=np.nan, z=np.nan,
+                imp=float(elec_imp),
+                location='location',
+                filtering='none',
+                group=nwbfile.electrode_groups[elec_group]
+            )
     else:  # if no electrodes file info was provided
         first_el_grp = list(nwbfile.electrode_groups.keys())[0]
         electrode_group = nwbfile.electrode_groups[first_el_grp]

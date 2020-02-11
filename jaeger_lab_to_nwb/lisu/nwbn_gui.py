@@ -14,6 +14,7 @@ def main():
     # Source paths
     source_paths = dict()
     source_paths['dir_ecephys_rhd'] = {'type': 'dir', 'path': ''}
+    source_paths['file_electrodes'] = {'type': 'file', 'path': ''}
     source_paths['dir_behavior'] = {'type': 'dir', 'path': ''}
 
     # Lab-specific kwargs

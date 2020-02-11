@@ -22,6 +22,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
     source_paths : dict
         Dictionary with paths to source files/directories. e.g.:
         {'dir_ecepys_rhd': {'type': 'dir', 'path': ''},
+        'file_electrodes': {'type': 'file', 'path': ''}
          'dir_behavior_labview': {'type': 'dir', 'path': ''}}
     f_nwb : str
         Path to output NWB file, e.g. 'my_file.nwb'.
@@ -33,17 +34,20 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
 
     # Source files and directories
     dir_ecephys_rhd = None
+    file_electrodes = None
     dir_behavior_labview = None
     for k, v in source_paths.items():
         if v['path'] != '':
             if k == 'dir_ecephys_rhd':
                 dir_ecephys_rhd = v['path']
+            if k == 'file_electrodes':
+                file_electrodes = v['path']
             if k == 'dir_behavior_labview':
                 dir_behavior_labview = v['path']
 
     # Get initial metadata
     meta_init = copy.deepcopy(metadata['NWBFile'])
-    #meta_init['session_start_time'] = datetime.strptime(acquisition_date_A, '%Y/%m/%d %H:%M:%S')
+    # meta_init['session_start_time'] = datetime.strptime(acquisition_date_A, '%Y/%m/%d %H:%M:%S')
 
     # Initialize a NWB object
     nwbfile = NWBFile(**meta_init)
@@ -54,7 +58,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
             nwbfile=nwbfile,
             metadata=metadata,
             source_dir=dir_ecephys_rhd,
-            electrodes_file=None,
+            electrodes_file=file_electrodes,
         )
 
     # Adding behavior
