@@ -12,13 +12,17 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
 
     def data_gen(source_dir):
         all_files = [os.path.join(source_dir, file) for file in os.listdir(source_dir) if file.endswith(".rhd")]
+        n_files = len(all_files)
         # Iterates over all files within the directory
-        for fname in all_files:
+        for ii, fname in enumerate(all_files):
+            print("Converting ecephys rhd data: {}%".format(100*ii/n_files))
             file_data = load_intan.read_data(filename=fname)
             # Gets only valid timestamps
             valid_ts = file_data['board_dig_in_data'][0]
-            analog_data = file_data['amplifier_data'][:, valid_ts].T
-            yield analog_data
+            analog_data = file_data['amplifier_data'][:, valid_ts]
+            n_samples = analog_data.shape[1]
+            for sample in range(n_samples):
+                yield analog_data[:, sample]
 
     # Gets header data from first file
     all_files = [os.path.join(source_dir, file) for file in os.listdir(source_dir) if file.endswith(".rhd")]
@@ -30,22 +34,31 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
     # Adds Device
     device = nwbfile.create_device(name=metadata['Ecephys']['Device'][0]['name'])
 
-    # Electrodes
-    electrode_group = nwbfile.create_electrode_group(
-        name=metadata['Ecephys']['ElectrodeGroup'][0]['name'],
-        description=metadata['Ecephys']['ElectrodeGroup'][0]['description'],
-        location=metadata['Ecephys']['ElectrodeGroup'][0]['location'],
-        device=device
-    )
-    for idx in range(n_electrodes):
-        nwbfile.add_electrode(
-            id=idx,
-            x=np.nan, y=np.nan, z=np.nan,
-            imp=np.nan,
-            location='location',
-            filtering='none',
-            group=electrode_group
+    # Electrodes Groups
+    meta_electrode_groups = metadata['Ecephys']['ElectrodeGroup']
+    for meta in meta_electrode_groups:
+        nwbfile.create_electrode_group(
+            name=meta['name'],
+            description=meta['description'],
+            location=meta['location'],
+            device=device
         )
+
+    # Electrodes
+    if electrodes_file is not None:  # if an electrodes info file was provided
+        pass
+    else:  # if no electrodes file info was provided
+        first_el_grp = list(nwbfile.electrode_groups.keys())[0]
+        electrode_group = nwbfile.electrode_groups[first_el_grp]
+        for idx in range(n_electrodes):
+            nwbfile.add_electrode(
+                id=idx,
+                x=np.nan, y=np.nan, z=np.nan,
+                imp=np.nan,
+                location='location',
+                filtering='none',
+                group=electrode_group
+            )
 
     electrode_table_region = nwbfile.create_electrode_table_region(
         region=list(np.arange(n_electrodes)),

@@ -21,7 +21,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
     ----------
     source_paths : dict
         Dictionary with paths to source files/directories. e.g.:
-        {'file_ecepys_rhd': {'type': 'file', 'path': ''},
+        {'dir_ecepys_rhd': {'type': 'dir', 'path': ''},
          'dir_behavior_labview': {'type': 'dir', 'path': ''}}
     f_nwb : str
         Path to output NWB file, e.g. 'my_file.nwb'.
@@ -32,12 +32,12 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
     """
 
     # Source files and directories
-    file_ecephys_rhd = None
+    dir_ecephys_rhd = None
     dir_behavior_labview = None
     for k, v in source_paths.items():
         if v['path'] != '':
-            if k == 'file_ecephys_rhd':
-                file_ecephys_rhd = v['path']
+            if k == 'dir_ecephys_rhd':
+                dir_ecephys_rhd = v['path']
             if k == 'dir_behavior_labview':
                 dir_behavior_labview = v['path']
 
@@ -52,8 +52,9 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
     if add_ecephys:
         nwbfile = add_ecephys_rhd(
             nwbfile=nwbfile,
-            source_file=file_ecephys_rhd,
-            metadata=metadata
+            metadata=metadata,
+            source_dir=dir_ecephys_rhd,
+            electrodes_file=None,
         )
 
     # Adding behavior
