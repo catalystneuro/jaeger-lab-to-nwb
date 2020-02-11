@@ -8,8 +8,29 @@ def add_behavior_treadmill(nwbfile, metadata, treadmill_file, nose_file):
     """
     Reads treadmill experiment behavioral data from csv files and adds it to nwbfile.
     """
-    print(treadmill_file)
-    print(nose_file)
+    # Create BehavioralTimeSeries container
+    behavioral_ts = BehavioralTimeSeries()
+    meta_behavioral_ts = metadata['Behavior']['BehavioralTimeSeries']['time_series']
+
+    # Treadmill continuous data
+    df_treadmill = pd.read_csv(treadmill_file, index_col=False)
+
+    # Nose position continuous data
+    df_nose = pd.read_csv(nose_file, index_col=False)
+
+    # All behavioral data
+    df_all = pd.concat([df_treadmill, df_nose], axis=1, sort=False)
+
+    t_offset = df_treadmill.loc[0]['Time']
+    for meta in meta_behavioral_ts:
+        behavioral_ts.create_timeseries(
+            name=meta['name'],
+            data=df_all[meta['name']].to_numpy(),
+            timestamps=df_all['Time'].to_numpy() - t_offset,
+            description=meta['description']
+        )
+
+    nwbfile.add_acquisition(behavioral_ts)
 
     return nwbfile
 

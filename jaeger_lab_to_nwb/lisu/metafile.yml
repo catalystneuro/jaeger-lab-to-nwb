@@ -27,3 +27,27 @@ Ecephys:
       device: device_ecephys
       location: ADDME
       name: ElectrodeGroup_3
+Behavior:
+  BehavioralTimeSeries:
+    name: BehavioralTimeSeries
+    time_series:
+      - name: Speed
+        description: ADDME
+      - name: Encoder
+        description: ADDME
+      - name: BeamBreak
+        description: ADDME
+      - name: Iteration
+        description: ADDME
+      - name: ActualPeriod
+        description: ADDME
+      - name: VariableSpeed
+        description: ADDME
+      - name: Nose_X
+        description: ADDME
+      - name: Nose_Y
+        description: ADDME
+      - name: Cntr_X
+        description: ADDME
+      - name: Cntr_Y
+        description: ADDME
