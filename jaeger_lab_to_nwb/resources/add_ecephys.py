@@ -1,6 +1,6 @@
 from pynwb.ecephys import ElectricalSeries
 from hdmf.data_utils import DataChunkIterator
-from jaeger_lab_to_nwb.lisu.load_intan import load_intan, read_header
+from jaeger_lab_to_nwb.resources.load_intan import load_intan, read_header
 import numpy as np
 import os
 

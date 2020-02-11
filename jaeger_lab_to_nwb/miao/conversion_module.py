@@ -3,8 +3,8 @@
 # ------------------------------------------------------------------------------
 from pynwb import NWBFile, NWBHDF5IO
 
-from jaeger_lab_to_nwb.add_ophys import add_ophys_rsd, read_trial_meta
-from jaeger_lab_to_nwb.add_behavior import add_behavior_labview
+from jaeger_lab_to_nwb.resources.add_ophys import add_ophys_rsd, read_trial_meta
+from jaeger_lab_to_nwb.resources.add_behavior import add_behavior_labview
 
 from datetime import datetime
 import yaml
