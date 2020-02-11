@@ -4,9 +4,10 @@
 from pynwb import NWBFile, NWBHDF5IO
 
 from jaeger_lab_to_nwb.resources.add_ecephys import add_ecephys_rhd
-from jaeger_lab_to_nwb.resources.add_behavior import add_behavior_labview
+from jaeger_lab_to_nwb.resources.add_behavior import add_behavior_treadmill
 
 from datetime import datetime
+import pandas as pd
 import yaml
 import copy
 import os
@@ -22,8 +23,8 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
     source_paths : dict
         Dictionary with paths to source files/directories. e.g.:
         {'dir_ecepys_rhd': {'type': 'dir', 'path': ''},
-        'file_electrodes': {'type': 'file', 'path': ''}
-         'dir_behavior_labview': {'type': 'dir', 'path': ''}}
+         'file_electrodes': {'type': 'file', 'path': ''},
+         'dir_behavior': {'type': 'dir', 'path': ''}}
     f_nwb : str
         Path to output NWB file, e.g. 'my_file.nwb'.
     metadata : dict
@@ -35,15 +36,15 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
     # Source files and directories
     dir_ecephys_rhd = None
     file_electrodes = None
-    dir_behavior_labview = None
+    dir_behavior = None
     for k, v in source_paths.items():
         if v['path'] != '':
             if k == 'dir_ecephys_rhd':
                 dir_ecephys_rhd = v['path']
             if k == 'file_electrodes':
                 file_electrodes = v['path']
-            if k == 'dir_behavior_labview':
-                dir_behavior_labview = v['path']
+            if k == 'dir_behavior':
+                dir_behavior = v['path']
 
     # Get initial metadata
     meta_init = copy.deepcopy(metadata['NWBFile'])
@@ -63,10 +64,53 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
 
     # Adding behavior
     if add_behavior:
-        nwbfile = add_behavior_labview(
+        # Detect relevant files: trials summary, treadmill data and nose data
+        all_files = os.listdir(dir_behavior)
+        trials_file = [f for f in all_files if ('_tr.csv' in f and '~lock' not in f)][0]
+        treadmill_file = trials_file.split('_tr')[0] + '.csv'
+        nose_file = trials_file.split('_tr')[0] + '_mk.csv'
+
+        # Add trials
+        df_trials_summary = pd.read_csv(trials_file)
+
+        nwbfile.add_trial_column(name='fail', description='')
+        nwbfile.add_trial_column(name='reward_given', description='')
+        nwbfile.add_trial_column(name='total_rewards', description='')
+        nwbfile.add_trial_column(name='init_dur', description='')
+        nwbfile.add_trial_column(name='light_dur', description='')
+        nwbfile.add_trial_column(name='motor_dur', description='')
+        nwbfile.add_trial_column(name='post_motor', description='')
+        nwbfile.add_trial_column(name='speed', description='')
+        nwbfile.add_trial_column(name='speed_mode', description='')
+        nwbfile.add_trial_column(name='amplitude', description='')
+        nwbfile.add_trial_column(name='period', description='')
+        nwbfile.add_trial_column(name='deviation', description='')
+
+        t_offset = df_trials_summary.loc[0]['Start Time']
+        for index, row in df_trials_summary.iterrows():
+            nwbfile.add_trial(
+                start_time=row['Start Time'] - t_offset,
+                stop_time=row['End Time'] - t_offset,
+                fail=row['Fail'],
+                reward_given=row['Reward Given'],
+                total_rewards=row['Total Rewards'],
+                init_dur=row['Init Dur'],
+                light_dur=row['Light Dur'],
+                motor_dur=row['Motor Dur'],
+                post_motor=row['Post Motor'],
+                speed=row['Speed'],
+                speed_mode=row['Speed Mode'],
+                amplitude=row['Amplitude'],
+                period=row['Period'],
+                deviation=row['+/- Deviation'],
+            )
+
+        # Add continuous behavioral data
+        nwbfile = add_behavior_treadmill(
             nwbfile=nwbfile,
-            source_dir=dir_behavior_labview,
-            metadata=metadata
+            metadata=metadata,
+            treadmill_file=treadmill_file,
+            nose_file=nose_file
         )
 
     # Saves to NWB file

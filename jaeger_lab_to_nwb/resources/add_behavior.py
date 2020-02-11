@@ -4,6 +4,16 @@ import pandas as pd
 import os
 
 
+def add_behavior_treadmill(nwbfile, metadata, treadmill_file, nose_file):
+    """
+    Reads treadmill experiment behavioral data from csv files and adds it to nwbfile.
+    """
+    print(treadmill_file)
+    print(nose_file)
+
+    return nwbfile
+
+
 def add_behavior_labview(nwbfile, source_dir, metadata):
     """
     Reads behavioral data from txt files and adds it to nwbfile.
