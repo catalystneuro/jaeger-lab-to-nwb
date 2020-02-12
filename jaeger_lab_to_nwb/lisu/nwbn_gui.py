@@ -20,7 +20,7 @@ def main():
     # Lab-specific kwargs
     kwargs_fields = {
         'add_ecephys': True,
-        'add_behavior': False
+        'add_behavior': True
     }
 
     nwbn_conversion_gui(

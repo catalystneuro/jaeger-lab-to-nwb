@@ -1,4 +1,4 @@
-name: jaeger_env
+name: jaeger_nwb
 channels:
 - defaults
 - anaconda

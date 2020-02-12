@@ -24,17 +24,17 @@ Ecephys:
       starting_time: 0.0
       conversion: 1.0
   ElectrodeGroup:
-    - description: anterior lateral motor cortex (licking area)
+    - description: ADDME
       device: device_ecephys
-      location: ADDME
+      location: anterior lateral motor cortex (licking area)
       name: ElectrodeGroup_1
-    - description: motor cortex (caudal forelimb area)
+    - description: ADDME
       device: device_ecephys
-      location: ADDME
+      location: motor cortex (caudal forelimb area)
       name: ElectrodeGroup_2
-    - description: ventromedial thalamus
+    - description: ADDME
       device: device_ecephys
-      location: ADDME
+      location: ventromedial thalamus
       name: ElectrodeGroup_3
 Behavior:
   BehavioralTimeSeries:

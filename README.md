@@ -1,13 +1,13 @@
 # jaeger-lab-data-to-nwb
-Scripts which convert [Jaeger lab](https://scholarblogs.emory.edu/jaegerlab/) data to NWB format.
+Scripts which convert [Jaeger lab](https://scholarblogs.emory.edu/jaegerlab/) data to NWB format.<br>
 Authors: Luiz Tauffer and Ben Dichter
 
 # Install
 To clone the repository and set up a conda environment, do:
 ```
 $ git clone https://github.com/ben-dichter-consulting/jaeger-lab-data-to-nwb.git
-$ conda env create -f jaeger_lab_to_nwb/jaeger_env.yml
-$ source activate convert_to_nwb
+$ conda env create -f jaeger_lab_to_nwb/make_env.yml
+$ source activate jaeger_nwb
 ```
 
 Alternatively, to install directly in an existing environment:
