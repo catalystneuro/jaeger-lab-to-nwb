@@ -1,5 +1,10 @@
 # jaeger-lab-data-to-nwb
-Scripts which convert [Jaeger lab](https://scholarblogs.emory.edu/jaegerlab/) data to NWB format.<br>
+Convert [Jaeger lab](https://scholarblogs.emory.edu/jaegerlab/) data to NWB format.<br>
+
+Currently includes:
+* FRET optical imaging
+* Intan electrophysiology.
+
 Authors: Luiz Tauffer and Ben Dichter
 
 # Install
