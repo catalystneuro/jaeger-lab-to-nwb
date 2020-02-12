@@ -1,0 +1,62 @@
+NWBFile:
+  experimenter: Li Su
+  identifier: ADDME
+  institution: Emory University
+  lab: Jaeger lab
+  session_description: ADDME
+  session_start_time: 2018-08-09 10:00:00
+Subject:
+  age: ADDME
+  description: ADDME
+  genotype: ADDME
+  sex: ADDME
+  species: ADDME
+  subject_id: ADDME
+  weight: ADDME
+  date_of_birth: 2016-04-04 00:15:00
+Ecephys:
+  Device:
+    - name: device_ecephys
+  ElectricalSeries:
+    - description: ADDME
+      name: ElectricalSeries
+      rate: 0.0
+      starting_time: 0.0
+      conversion: 1.0
+  ElectrodeGroup:
+    - description: ADDME
+      device: device_ecephys
+      location: anterior lateral motor cortex (licking area)
+      name: ElectrodeGroup_1
+    - description: ADDME
+      device: device_ecephys
+      location: motor cortex (caudal forelimb area)
+      name: ElectrodeGroup_2
+    - description: ADDME
+      device: device_ecephys
+      location: ventromedial thalamus
+      name: ElectrodeGroup_3
+Behavior:
+  BehavioralTimeSeries:
+    name: BehavioralTimeSeries
+    time_series:
+      - name: Speed
+        description: ADDME
+      - name: Encoder
+        description: ADDME
+      - name: BeamBreak
+        description: ADDME
+      - name: Iteration
+        description: ADDME
+      - name: ActualPeriod
+        description: ADDME
+      - name: VariableSpeed
+        description: ADDME
+      - name: Nose_X
+        description: ADDME
+      - name: Nose_Y
+        description: ADDME
+      - name: Cntr_X
+        description: ADDME
+      - name: Cntr_Y
+        description: ADDME

@@ -2,47 +2,41 @@
 # authors: Luiz Tauffer and Ben Dichter
 # written for Jaeger Lab
 # ------------------------------------------------------------------------------
-from nwbn_conversion_tools.gui.nwbn_conversion_gui import nwbn_conversion_gui
-from ndx_fret import FRET, FRETSeries
-from ndx_fret.nwbn_gui_forms import GroupFRET, GroupFRETSeries
-
-import os
+import sys
+import importlib
 
 
 def main():
-    here = os.path.dirname(os.path.realpath(__file__))
-    metafile = os.path.join(here, 'metafile.yml')
-    conversion_module = os.path.join(here, 'conversion_module.py')
+    """
+    Command line use:
+    $ nwbn-gui-jaeger [experiment]
 
-    # Source paths
-    source_paths = dict()
-    source_paths['dir_cortical_imaging'] = {'type': 'dir', 'path': ''}
-    source_paths['file_ecephys_rhd'] = {'type': 'file', 'path': ''}
-    source_paths['dir_behavior_labview'] = {'type': 'dir', 'path': ''}
+    experiment : str (e.g.: miao, lisu)
+        experiment is optional, it should hold the name of the subdirectory in
+        the repo holding experiment-specific metafile.yml, conversion_module.py
+        and nwbn_gui.py
+    """
+    if len(sys.argv) > 1:
+        experiment = sys.argv[1]
 
-    # Lab-specific kwargs
-    kwargs_fields = {
-        'add_raw': True,
-        'add_ecephys': True,
-        'add_behavior': True
-    }
+        # Tests if module exists
+        module_spec = importlib.util.find_spec("jaeger_lab_to_nwb." + experiment)
+        if module_spec is not None:
+            print("Importing experiment configuration from " + experiment)
+            # Generating the submodule name from string
+            full_module_name = "jaeger_lab_to_nwb." + experiment + ".nwbn_gui"
 
-    # Extensions modules and classes
-    extension_modules = {
-        'ndx_fret': ['FRET', 'FRETSeries']
-    }
+            # Import gui submodule
+            gui = importlib.import_module(full_module_name)
 
-    # Extension-specific gui forms
-    extension_forms = {
-        'FRET': GroupFRET,
-        'FRETSeries': GroupFRETSeries
-    }
-
-    nwbn_conversion_gui(
-        metafile=metafile,
-        conversion_module=conversion_module,
-        source_paths=source_paths,
-        kwargs_fields=kwargs_fields,
-        extension_modules=extension_modules,
-        extension_forms=extension_forms
-    )
+            # Run GUI
+            print("Running nwbn-gui for experiment: ", experiment)
+            gui.main()
+        else:
+            print("Module" + experiment + " does not exist. Running nwbn-gui without specific metadata.")
+            from nwbn_conversion_tools.gui import command_line as gui
+            gui.main()
+    else:
+        print("Running nwbn-gui without specific metadata.")
+        from nwbn_conversion_tools.gui import command_line as gui
+        gui.main()

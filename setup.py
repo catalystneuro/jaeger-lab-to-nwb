@@ -18,7 +18,7 @@ setup(
     install_requires=[
         'matplotlib', 'cycler', 'scipy', 'numpy', 'jupyter', 'h5py', 'pynwb',
         'pyintan'],
-    entry_points = {
+    entry_points={
         'console_scripts': ['nwbn-gui-jaeger=jaeger_lab_to_nwb.command_line:main'],
     }
 )
