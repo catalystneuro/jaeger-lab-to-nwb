@@ -17,7 +17,7 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
         n_files = len(all_files)
         # Iterates over all files within the directory
         for ii, fname in enumerate(all_files):
-            print("Converting ecephys rhd data: {}%".format(100*ii/n_files))
+            print("Converting ecephys rhd data: {}%".format(100 * ii / n_files))
             file_data = load_intan.read_data(filename=fname)
             # Gets only valid timestamps
             valid_ts = file_data['board_dig_in_data'][0]

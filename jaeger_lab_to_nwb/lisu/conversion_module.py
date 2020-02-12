@@ -48,7 +48,6 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
 
     # Get initial metadata
     meta_init = copy.deepcopy(metadata['NWBFile'])
-    # meta_init['session_start_time'] = datetime.strptime(acquisition_date_A, '%Y/%m/%d %H:%M:%S')
 
     # Initialize a NWB object
     nwbfile = NWBFile(**meta_init)
