@@ -2,6 +2,7 @@
 # written for Jaeger Lab
 # ------------------------------------------------------------------------------
 from pynwb import NWBFile, NWBHDF5IO
+from pynwb.file import Subject
 
 from jaeger_lab_to_nwb.resources.add_ecephys import add_ecephys_rhd
 from jaeger_lab_to_nwb.resources.add_behavior import add_behavior_treadmill
@@ -51,6 +52,19 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
 
     # Initialize a NWB object
     nwbfile = NWBFile(**meta_init)
+
+    # Add subject metadata
+    experiment_subject = Subject(
+        age=metadata['Subject']['age'],
+        subject_id=metadata['Subject']['subject_id'],
+        species=metadata['Subject']['species'],
+        description=metadata['Subject']['description'],
+        genotype=metadata['Subject']['genotype'],
+        date_of_birth=metadata['Subject']['date_of_birth'],
+        weight=metadata['Subject']['weight'],
+        sex=metadata['Subject']['sex']
+    )
+    nwbfile.subject = experiment_subject
 
     # Adding ecephys
     if add_ecephys:
