@@ -7,7 +7,6 @@ from pynwb.file import Subject
 from jaeger_lab_to_nwb.resources.add_ecephys import add_ecephys_rhd
 from jaeger_lab_to_nwb.resources.add_behavior import add_behavior_treadmill
 
-from datetime import datetime
 import pandas as pd
 import yaml
 import copy
@@ -83,6 +82,10 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
         treadmill_file = trials_file.split('_tr')[0] + '.csv'
         nose_file = trials_file.split('_tr')[0] + '_mk.csv'
 
+        trials_file = os.path.join(dir_behavior, trials_file)
+        treadmill_file = os.path.join(dir_behavior, treadmill_file)
+        nose_file = os.path.join(dir_behavior, nose_file)
+
         # Add trials
         df_trials_summary = pd.read_csv(trials_file)
 
@@ -129,27 +132,72 @@ def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
     # Saves to NWB file
     with NWBHDF5IO(f_nwb, mode='w') as io:
         io.write(nwbfile)
-    print('NWB file saved with size: ', os.stat(f_nwb).st_size/1e6, ' mb')
+    print('NWB file saved with size: ', os.stat(f_nwb).st_size / 1e6, ' mb')
 
 
 # If called directly fom terminal
 if __name__ == '__main__':
+    """
+    Usage: python conversion_module.py [output_file] [metafile] [dir_ecephys_rhd]
+    [file_electrodes] [dir_behavior] [-add_ecephys] [-add_behavior]
+    """
+    import argparse
     import sys
 
-    f1 = sys.argv[1]
-    f2 = sys.argv[2]
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "output_file", help="Output file to be created."
+    )
+    parser.add_argument(
+        "metafile", help="The path to the metadata YAML file."
+    )
+    parser.add_argument(
+        "dir_ecephys_rhd", help="The path to the directory containing rhd files."
+    )
+    parser.add_argument(
+        "file_electrodes", help="The path to the electrodes info file."
+    )
+    parser.add_argument(
+        "dir_behavior", help="The path to the directory containing behavior data files."
+    )
+    parser.add_argument(
+        "--add_ecephys",
+        action="store_true",
+        default=False,
+        help="Whether to add the ecephys data to the NWB file or not",
+    )
+    parser.add_argument(
+        "--add_behavior",
+        action="store_true",
+        default=False,
+        help="Whether to add the behavior data to the NWB file or not",
+    )
+
+    if not sys.argv[1:]:
+        args = parser.parse_args(["--help"])
+    else:
+        args = parser.parse_args()
+
     source_paths = {
-        'file1': {'type': 'file', 'path': f1},
-        'file2': {'type': 'file', 'path': f2},
+        'dir_ecephys_rhd': {'type': 'dir', 'path': args.dir_ecephys_rhd},
+        'file_electrodes': {'type': 'file', 'path': args.file_electrodes},
+        'dir_behavior': {'type': 'dit', 'path': args.dir_behavior},
     }
-    f_nwb = sys.argv[4]
-    metafile = sys.argv[5]
+
+    f_nwb = args.output_file
 
     # Load metadata from YAML file
-    metafile = sys.argv[3]
+    metafile = args.metafile
     with open(metafile) as f:
         metadata = yaml.safe_load(f)
 
+    # Lab-specific kwargs
+    kwargs_fields = {
+        'add_ecephys': args.add_ecephys,
+        'add_behavior': args.add_behavior
+    }
+
     conversion_function(source_paths=source_paths,
                         f_nwb=f_nwb,
-                        metadata=metadata)
+                        metadata=metadata,
+                        **kwargs_fields)
