@@ -2,8 +2,9 @@
 Convert [Jaeger lab](https://scholarblogs.emory.edu/jaegerlab/) data to NWB format.<br>
 
 Currently includes:
-* FRET optical imaging
-* Intan electrophysiology.
+* FRET optical imaging (rsd)
+* Intan electrophysiology (rhd)
+* Behavioral data (csv)
 
 Authors: Luiz Tauffer and Ben Dichter
 
