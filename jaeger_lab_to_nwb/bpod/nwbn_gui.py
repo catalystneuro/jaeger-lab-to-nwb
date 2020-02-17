@@ -3,7 +3,6 @@
 # written for Jaeger Lab
 # ------------------------------------------------------------------------------
 from nwbn_conversion_tools.gui.nwbn_conversion_gui import nwbn_conversion_gui
-from ndx_fret.nwbn_gui_forms import GroupFRET, GroupFRETSeries
 
 import os
 
@@ -15,24 +14,11 @@ def main():
 
     # Source paths
     source_paths = dict()
-    source_paths['dir_cortical_imaging'] = {'type': 'dir', 'path': ''}
-    source_paths['dir_behavior_labview'] = {'type': 'dir', 'path': ''}
+    source_paths['file_behavior_bpod'] = {'type': 'file', 'path': ''}
 
     # Lab-specific kwargs
     kwargs_fields = {
-        'add_raw': True,
-        'add_behavior': True
-    }
-
-    # Extensions modules and classes
-    extension_modules = {
-        'ndx_fret': ['FRET', 'FRETSeries']
-    }
-
-    # Extension-specific gui forms
-    extension_forms = {
-        'FRET': GroupFRET,
-        'FRETSeries': GroupFRETSeries
+        'add_bpod': True,
     }
 
     nwbn_conversion_gui(
@@ -40,8 +26,6 @@ def main():
         conversion_module=conversion_module,
         source_paths=source_paths,
         kwargs_fields=kwargs_fields,
-        extension_modules=extension_modules,
-        extension_forms=extension_forms
     )
 
 
