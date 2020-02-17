@@ -150,7 +150,12 @@ def read_data(filename, print_details=False):
             data['board_dig_out_data'][i, :] = np.not_equal(np.bitwise_and(data['board_dig_out_raw'], (1 << header['board_dig_out_channels'][i]['native_order'])), 0)
 
         # Scale voltage levels appropriately.
-        data['amplifier_data'] = np.multiply(0.195, (data['amplifier_data'].astype(np.int32) - 32768))      # units = microvolts
+        # This line is the original (IntanTech provided) conversion to uVolts
+        # data['amplifier_data'] = np.multiply(0.195, (data['amplifier_data'].astype(np.int32) - 32768))      # units = microvolts
+        # This line modifies it, to get the data in int32 and the conversion scale to Volts
+        data['amplifier_data'] = data['amplifier_data'].astype(np.int32) - 32768  # int32 dtype
+        data['amplifier_data_conversion_factor'] = 0.195e-6  # conversion factor to Volts
+
         data['aux_input_data'] = np.multiply(37.4e-6, data['aux_input_data'])               # units = volts
         data['supply_voltage_data'] = np.multiply(74.8e-6, data['supply_voltage_data'])     # units = volts
         if header['eval_board_mode'] == 1:
@@ -162,7 +167,7 @@ def read_data(filename, print_details=False):
         data['temp_sensor_data'] = np.multiply(0.01, data['temp_sensor_data'])               # units = deg C
 
         # Check for gaps in timestamps.
-        num_gaps = np.sum(np.not_equal(data['t_amplifier'][1:]-data['t_amplifier'][:-1], 1))
+        num_gaps = np.sum(np.not_equal(data['t_amplifier'][1:] - data['t_amplifier'][:-1], 1))
         if print_details:
             if num_gaps == 0:
                 print('No missing timestamps in data.')

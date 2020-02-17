@@ -37,6 +37,9 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
     electrodes_info = file_data['amplifier_channels']
     n_electrodes = len(electrodes_info)
 
+    # Gets electricalseries conversion factor
+    es_conversion_factor = file_data['amplifier_data_conversion_factor']
+
     # Adds Device
     device = nwbfile.create_device(name=metadata['Ecephys']['Device'][0]['name'])
 
@@ -99,7 +102,7 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
         electrodes=electrode_table_region,
         rate=sampling_rate,
         starting_time=0.0,
-        conversion=metadata['Ecephys']['ElectricalSeries'][0]['conversion']
+        conversion=es_conversion_factor
     )
     nwbfile.add_acquisition(ephys_ts)
 
