@@ -3,7 +3,6 @@
 # written for Jaeger Lab
 # ------------------------------------------------------------------------------
 from nwbn_conversion_tools.gui.nwbn_conversion_gui import nwbn_conversion_gui
-from ndx_fret import FRET, FRETSeries
 from ndx_fret.nwbn_gui_forms import GroupFRET, GroupFRETSeries
 
 import os
@@ -21,7 +20,7 @@ def main():
 
     # Lab-specific kwargs
     kwargs_fields = {
-        'add_raw': True,
+        'add_ophys': True,
         'add_behavior': True
     }
 

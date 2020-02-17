@@ -16,7 +16,7 @@ import os
 def conversion_function(source_paths, f_nwb, metadata, add_ecephys,
                         add_behavior, **kwargs):
     """
-    Copy data stored in a set of .npz files to a single NWB file.
+    Conversion function for Li Su experiments.
 
     Parameters
     ----------
@@ -181,7 +181,7 @@ if __name__ == '__main__':
     source_paths = {
         'dir_ecephys_rhd': {'type': 'dir', 'path': args.dir_ecephys_rhd},
         'file_electrodes': {'type': 'file', 'path': args.file_electrodes},
-        'dir_behavior': {'type': 'dit', 'path': args.dir_behavior},
+        'dir_behavior': {'type': 'dir', 'path': args.dir_behavior},
     }
 
     f_nwb = args.output_file

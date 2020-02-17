@@ -20,7 +20,7 @@ def read_trial_meta(trial_meta):
                 acquisition_date = line.replace('acquisition_date', '').replace('=', '').strip()
             if 'sample_time' in line:
                 aux = line.replace('sample_time', '').replace('=', '').replace('msec', '').strip()
-                sample_time = float(aux)/1000.
+                sample_time = float(aux) / 1000.
                 sample_rate = 1 / sample_time
             if 'page_frames' in line:
                 aux = line.replace('page_frames', '').replace('=', '').strip()
@@ -52,17 +52,17 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
 
         # Iterates over all files within the same trial
         for fn, fraw in enumerate(files_raw):
-            print('adding channel ' + channel + ', trial: ', str(trial), ': ', 100*fn/len(files_raw), '%')
+            print('adding channel ' + channel + ', trial: ', str(trial), ': ', 100 * fn / len(files_raw), '%')
             fpath = os.path.join(source_dir, fraw)
 
             # Open file as a byte array
             with open(fpath, "rb") as f:
                 byte = f.read(1000000000)
             # Data as word array: 'h' signed, 'H' unsigned
-            words = np.array(struct.unpack('h'*(len(byte)//2), byte))
+            words = np.array(struct.unpack('h' * (len(byte) // 2), byte))
 
             # Iterates over frames within the same file (n_frames, 100, 100)
-            n_frames = int(len(words)/12800)
+            n_frames = int(len(words) / 12800)
             words_reshaped = words.reshape(12800, n_frames, order='F')
             frames = np.zeros((n_frames, 100, 100))
             excess_frames = np.zeros((n_frames, 20, 100))
