@@ -36,7 +36,7 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
     nwbfile.add_trial_column(name='trial_type', description='')
     nwbfile.add_trial_column(name='led_type', description='')
     nwbfile.add_trial_column(name='reaching', description='')
-    # nwbfile.add_trial_column(name='states', description='')
+    nwbfile.add_trial_column(name='states', description='', index=True)
 
     # Trials table structure:
     # trial_number | start | end | states (list) | tag1 | tag1_dur | tag2 | tag2_dur ...
@@ -50,7 +50,7 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
             trial_type=trials_types[tr],
             led_type=trials_led_types[tr],
             reaching=trials_reaching[tr],
-            # states=trials_states_names,
+            states=trials_states_names[tr],
         )
 
     # Add states tags and durations
