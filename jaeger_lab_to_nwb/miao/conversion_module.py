@@ -2,6 +2,7 @@
 # written for Jaeger Lab
 # ------------------------------------------------------------------------------
 from pynwb import NWBFile, NWBHDF5IO
+from pynwb.file import Subject
 
 from jaeger_lab_to_nwb.resources.add_ophys import add_ophys_rsd, read_trial_meta
 from jaeger_lab_to_nwb.resources.add_behavior import add_behavior_labview
@@ -12,10 +13,10 @@ import copy
 import os
 
 
-def conversion_function(source_paths, f_nwb, metadata, add_raw,
+def conversion_function(source_paths, f_nwb, metadata, add_ophys,
                         add_behavior, **kwargs):
     """
-    Copy data stored in a set of .npz files to a single NWB file.
+    Conversion function for Miao experiments.
 
     Parameters
     ----------
@@ -60,47 +61,104 @@ def conversion_function(source_paths, f_nwb, metadata, add_raw,
     # Initialize a NWB object
     nwbfile = NWBFile(**meta_init)
 
+    # Add subject metadata
+    experiment_subject = Subject(
+        age=metadata['Subject']['age'],
+        subject_id=metadata['Subject']['subject_id'],
+        species=metadata['Subject']['species'],
+        description=metadata['Subject']['description'],
+        genotype=metadata['Subject']['genotype'],
+        date_of_birth=metadata['Subject']['date_of_birth'],
+        weight=metadata['Subject']['weight'],
+        sex=metadata['Subject']['sex']
+    )
+    nwbfile.subject = experiment_subject
+
     # Adding raw imaging data
-    if add_raw:
+    if add_ophys:
         nwbfile = add_ophys_rsd(
             nwbfile=nwbfile,
-            source_dir=dir_cortical_imaging,
             metadata=metadata,
+            source_dir=dir_cortical_imaging,
             trials=all_trials
         )
 
     # Adding behavior
+    # The current behavior data files do nt correspond to Miao experiments
+    add_behavior = False
     if add_behavior:
         nwbfile = add_behavior_labview(
             nwbfile=nwbfile,
-            source_dir=dir_behavior_labview,
-            metadata=metadata
+            metadata=metadata,
+            source_dir=dir_behavior_labview
         )
+    # ----------------------------------------------------------------------
 
     # Saves to NWB file
     with NWBHDF5IO(f_nwb, mode='w') as io:
         io.write(nwbfile)
-    print('NWB file saved with size: ', os.stat(f_nwb).st_size/1e6, ' mb')
+    print('NWB file saved with size: ', os.stat(f_nwb).st_size / 1e6, ' mb')
 
 
 # If called directly fom terminal
 if __name__ == '__main__':
+    """
+    Usage: python conversion_module.py [output_file] [metafile] [dir_cortical_imaging]
+    [dir_behavior_labview] [-add_ecephys] [-add_behavior]
+    """
+    import argparse
     import sys
 
-    f1 = sys.argv[1]
-    f2 = sys.argv[2]
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "output_file", help="Output file to be created."
+    )
+    parser.add_argument(
+        "metafile", help="The path to the metadata YAML file."
+    )
+    parser.add_argument(
+        "dir_cortical_imaging", help="The path to the directory containing rsd files."
+    )
+    parser.add_argument(
+        "dir_behavior_labview", help="The path to the directory containing labview behavior data files."
+    )
+    parser.add_argument(
+        "--add_ophys",
+        action="store_true",
+        default=False,
+        help="Whether to add the ophys data to the NWB file or not",
+    )
+    parser.add_argument(
+        "--add_behavior",
+        action="store_true",
+        default=False,
+        help="Whether to add the behavior data to the NWB file or not",
+    )
+
+    if not sys.argv[1:]:
+        args = parser.parse_args(["--help"])
+    else:
+        args = parser.parse_args()
+
     source_paths = {
-        'file1': {'type': 'file', 'path': f1},
-        'file2': {'type': 'file', 'path': f2},
+        'dir_cortical_imaging': {'type': 'dir', 'path': args.dir_cortical_imaging},
+        'dir_behavior_labview': {'type': 'dir', 'path': args.dir_behavior_labview},
     }
-    f_nwb = sys.argv[4]
-    metafile = sys.argv[5]
+
+    f_nwb = args.output_file
 
     # Load metadata from YAML file
-    metafile = sys.argv[3]
+    metafile = args.metafile
     with open(metafile) as f:
         metadata = yaml.safe_load(f)
 
+    # Lab-specific kwargs
+    kwargs_fields = {
+        'add_ophys': args.add_ecephys,
+        'add_behavior': args.add_behavior
+    }
+
     conversion_function(source_paths=source_paths,
                         f_nwb=f_nwb,
-                        metadata=metadata)
+                        metadata=metadata,
+                        **kwargs_fields)
