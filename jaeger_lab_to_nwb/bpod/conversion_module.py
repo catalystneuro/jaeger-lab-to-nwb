@@ -47,24 +47,58 @@ def conversion_function(source_paths, f_nwb, metadata, add_bpod, **kwargs):
     print('NWB file saved with size: ', os.stat(f_nwb).st_size / 1e6, ' mb')
 
 
-# If called directly fom terminal
-if __name__ == '__main__':
+def main():
+    """
+    Usage: python conversion_module.py [output_file] [metafile] [file_behavior_bpod]
+    [-add_behavior]
+    """
+    import argparse
     import sys
 
-    f1 = sys.argv[1]
-    f2 = sys.argv[2]
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "output_file", help="Output file to be created."
+    )
+    parser.add_argument(
+        "metafile", help="The path to the metadata YAML file."
+    )
+    parser.add_argument(
+        "file_behavior_bpod", help="The path to the directory containing rhd files."
+    )
+    parser.add_argument(
+        "--add_behavior",
+        action="store_true",
+        default=False,
+        help="Whether to add the behavior data to the NWB file or not",
+    )
+
+    if not sys.argv[1:]:
+        args = parser.parse_args(["--help"])
+    else:
+        args = parser.parse_args()
+
     source_paths = {
-        'file1': {'type': 'file', 'path': f1},
-        'file2': {'type': 'file', 'path': f2},
+        'file_behavior_bpod': {'type': 'dir', 'path': args.dir_ecephys_rhd},
     }
-    f_nwb = sys.argv[4]
-    metafile = sys.argv[5]
+
+    f_nwb = args.output_file
 
     # Load metadata from YAML file
-    metafile = sys.argv[3]
+    metafile = args.metafile
     with open(metafile) as f:
         metadata = yaml.safe_load(f)
 
+    # Lab-specific kwargs
+    kwargs_fields = {
+        'add_behavior': args.add_behavior
+    }
+
     conversion_function(source_paths=source_paths,
                         f_nwb=f_nwb,
-                        metadata=metadata)
+                        metadata=metadata,
+                        **kwargs_fields)
+
+
+# If called directly fom terminal
+if __name__ == '__main__':
+    main()
