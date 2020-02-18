@@ -1,14 +1,9 @@
 # authors: Luiz Tauffer and Ben Dichter
 # written for Jaeger Lab
 # ------------------------------------------------------------------------------
-from pynwb import NWBFile, NWBHDF5IO
-from pynwb.file import Subject
-
+from pynwb import NWBHDF5IO
 from jaeger_lab_to_nwb.resources.add_behavior import add_behavior_bpod
-
-from datetime import datetime
 import yaml
-import copy
 import os
 
 
@@ -36,24 +31,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_bpod, **kwargs):
             if k == 'file_behavior_bpod':
                 file_behavior_bpod = v['path']
 
-    # Get initial metadata
-    meta_init = copy.deepcopy(metadata['NWBFile'])
-
-    # Initialize a NWB object
-    nwbfile = NWBFile(**meta_init)
-
-    # Add subject metadata
-    experiment_subject = Subject(
-        age=metadata['Subject']['age'],
-        subject_id=metadata['Subject']['subject_id'],
-        species=metadata['Subject']['species'],
-        description=metadata['Subject']['description'],
-        genotype=metadata['Subject']['genotype'],
-        date_of_birth=metadata['Subject']['date_of_birth'],
-        weight=metadata['Subject']['weight'],
-        sex=metadata['Subject']['sex']
-    )
-    nwbfile.subject = experiment_subject
+    nwbfile = None
 
     # Adding bpod behavioral data
     if add_bpod:

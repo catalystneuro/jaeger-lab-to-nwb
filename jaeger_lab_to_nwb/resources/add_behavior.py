@@ -1,7 +1,11 @@
 from pynwb.behavior import BehavioralTimeSeries
 
+from jaeger_lab_to_nwb.resources.create_nwbfile import create_nwbfile
+
+from datetime import datetime
 import pandas as pd
 import numpy as np
+import copy
 import os
 
 
@@ -14,16 +18,25 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
     # Opens -.mat file and extracts data
     fdata = loadmat(source_file, struct_as_record=False, squeeze_me=True)
 
-    n_trials = fdata['SessionData'].nTrials
     session_start_date = fdata['SessionData'].Info.SessionDate
     session_start_time = fdata['SessionData'].Info.SessionStartTime_UTC
 
+    # Get initial metadata
+    meta_init = copy.deepcopy(metadata)
+    if nwbfile is None:
+        date_time_string = session_start_date + ' ' + session_start_time
+        date_time_obj = datetime.strptime(date_time_string, '%d-%b-%Y %H:%M:%S')
+        meta_init['NWBFile']['session_start_time'] = date_time_obj
+        nwbfile = create_nwbfile(meta_init)
+
     # Summarized trials data
+    n_trials = fdata['SessionData'].nTrials
     trials_start_times = fdata['SessionData'].TrialStartTimestamp
     trials_end_times = fdata['SessionData'].TrialEndTimestamp
     trials_types = fdata['SessionData'].TrialTypes
     trials_led_types = fdata['SessionData'].LEDTypes
     trials_reaching = fdata['SessionData'].Reaching
+    trials_outcome = fdata['SessionData'].Outcome
 
     # Raw data - states
     trials_states_names_by_number = fdata['SessionData'].RawData.OriginalStateNamesByNumber
@@ -36,6 +49,7 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
     nwbfile.add_trial_column(name='trial_type', description='')
     nwbfile.add_trial_column(name='led_type', description='')
     nwbfile.add_trial_column(name='reaching', description='')
+    nwbfile.add_trial_column(name='outcome', description='')
     nwbfile.add_trial_column(name='states', description='', index=True)
 
     # Trials table structure:
@@ -50,6 +64,7 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
             trial_type=trials_types[tr],
             led_type=trials_led_types[tr],
             reaching=trials_reaching[tr],
+            outcome=trials_outcome[tr],
             states=trials_states_names[tr],
         )
 
