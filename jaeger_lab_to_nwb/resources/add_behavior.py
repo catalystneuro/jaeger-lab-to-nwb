@@ -1,5 +1,4 @@
-from pynwb.behavior import BehavioralTimeSeries
-
+from pynwb.behavior import BehavioralTimeSeries, BehavioralEvents
 from jaeger_lab_to_nwb.resources.create_nwbfile import create_nwbfile
 
 from datetime import datetime
@@ -53,8 +52,13 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
     nwbfile.add_trial_column(name='states', description='', index=True)
 
     # Trials table structure:
-    # trial_number | start | end | states (list) | tag1 | tag1_dur | tag2 | tag2_dur ...
+    # trial_number | start | end | trial_type | led_type | reaching | outcome | states (list)
     trials_states_names = []
+    tup_ts = np.array([])
+    port_1_in_ts = np.array([])
+    port_1_out_ts = np.array([])
+    port_2_in_ts = np.array([])
+    port_2_out_ts = np.array([])
     for tr in range(n_trials):
         trials_states_names.append([trials_states_names_by_number[tr][number - 1]
                                     for number in trials_states_numbers[tr]])
@@ -68,7 +72,27 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
             states=trials_states_names[tr],
         )
 
-    # Add states tags and durations
+        # Events names: ['Tup', 'Port2In', 'Port2Out', 'Port1In', 'Port1Out']
+        trial_events_names = fdata['SessionData'].RawEvents.Trial[tr].Events._fieldnames
+        t0 = trials_start_times[tr]
+        if 'Port1In' in trial_events_names:
+            timestamps = fdata['SessionData'].RawEvents.Trial[tr].Events.Port1In + t0
+            port_1_in_ts = np.append(port_1_in_ts, timestamps)
+        if 'Port1Out' in trial_events_names:
+            timestamps = fdata['SessionData'].RawEvents.Trial[tr].Events.Port1Out + t0
+            port_1_out_ts = np.append(port_1_out_ts, timestamps)
+        if 'Port2In' in trial_events_names:
+            timestamps = fdata['SessionData'].RawEvents.Trial[tr].Events.Port2In + t0
+            port_2_in_ts = np.append(port_2_in_ts, timestamps)
+        if 'Port2Out' in trial_events_names:
+            timestamps = fdata['SessionData'].RawEvents.Trial[tr].Events.Port2Out + t0
+            port_2_out_ts = np.append(port_2_out_ts, timestamps)
+        if 'Tup' in trial_events_names:
+            timestamps = fdata['SessionData'].RawEvents.Trial[tr].Events.Tup + t0
+            tup_ts = np.append(tup_ts, timestamps)
+
+    # Add states and durations
+    # trial_number | ... | state1 | state1_dur | state2 | state2_dur ...
     for state in all_trials_states_names:
         state_data = []
         state_dur = []
@@ -90,6 +114,16 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
             description='',
             data=state_dur,
         )
+
+    # Add events
+    behavioral_events = BehavioralEvents()
+    behavioral_events.create_timeseries(name='port_1_in', timestamps=port_1_in_ts)
+    behavioral_events.create_timeseries(name='port_1_out', timestamps=port_1_out_ts)
+    behavioral_events.create_timeseries(name='port_2_in', timestamps=port_2_in_ts)
+    behavioral_events.create_timeseries(name='port_2_out', timestamps=port_2_out_ts)
+    behavioral_events.create_timeseries(name='tup', timestamps=tup_ts)
+
+    nwbfile.add_acquisition(behavioral_events)
 
     return nwbfile
 
