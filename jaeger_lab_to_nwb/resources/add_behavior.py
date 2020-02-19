@@ -128,10 +128,68 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
     return nwbfile
 
 
-def add_behavior_treadmill(nwbfile, metadata, treadmill_file, nose_file):
+def add_behavior_treadmill(nwbfile, metadata, dir_behavior_treadmill):
     """
     Reads treadmill experiment behavioral data from csv files and adds it to nwbfile.
     """
+    # Detect relevant files: trials summary, treadmill data and nose data
+    all_files = os.listdir(dir_behavior_treadmill)
+    trials_file = [f for f in all_files if ('_tr.csv' in f and '~lock' not in f)][0]
+    treadmill_file = trials_file.split('_tr')[0] + '.csv'
+    nose_file = trials_file.split('_tr')[0] + '_mk.csv'
+
+    trials_file = os.path.join(dir_behavior_treadmill, trials_file)
+    treadmill_file = os.path.join(dir_behavior_treadmill, treadmill_file)
+    nose_file = os.path.join(dir_behavior_treadmill, nose_file)
+
+    # Get initial metadata
+    meta_init = copy.deepcopy(metadata)
+    if nwbfile is None:
+        date_string = trials_file[0].split('.')[0].split('_')[1]
+        time_string = trials_file[0].split('.')[0].split('_')[2]
+        date_time_string = date_string + ' ' + time_string
+        date_time_obj = datetime.strptime(date_time_string, '%y%m%d %H%M%S')
+        meta_init['NWBFile']['session_start_time'] = date_time_obj
+        nwbfile = create_nwbfile(meta_init)
+
+    # Add trials
+    if nwbfile.trials is not None:
+        print('Trials already exist in current nwb file. Treadmill behavior trials not added.')
+    else:
+        df_trials_summary = pd.read_csv(trials_file)
+
+        nwbfile.add_trial_column(name='fail', description='')
+        nwbfile.add_trial_column(name='reward_given', description='')
+        nwbfile.add_trial_column(name='total_rewards', description='')
+        nwbfile.add_trial_column(name='init_dur', description='')
+        nwbfile.add_trial_column(name='light_dur', description='')
+        nwbfile.add_trial_column(name='motor_dur', description='')
+        nwbfile.add_trial_column(name='post_motor', description='')
+        nwbfile.add_trial_column(name='speed', description='')
+        nwbfile.add_trial_column(name='speed_mode', description='')
+        nwbfile.add_trial_column(name='amplitude', description='')
+        nwbfile.add_trial_column(name='period', description='')
+        nwbfile.add_trial_column(name='deviation', description='')
+
+        t_offset = df_trials_summary.loc[0]['Start Time']
+        for index, row in df_trials_summary.iterrows():
+            nwbfile.add_trial(
+                start_time=row['Start Time'] - t_offset,
+                stop_time=row['End Time'] - t_offset,
+                fail=row['Fail'],
+                reward_given=row['Reward Given'],
+                total_rewards=row['Total Rewards'],
+                init_dur=row['Init Dur'],
+                light_dur=row['Light Dur'],
+                motor_dur=row['Motor Dur'],
+                post_motor=row['Post Motor'],
+                speed=row['Speed'],
+                speed_mode=row['Speed Mode'],
+                amplitude=row['Amplitude'],
+                period=row['Period'],
+                deviation=row['+/- Deviation'],
+            )
+
     # Create BehavioralTimeSeries container
     behavioral_ts = BehavioralTimeSeries()
     meta_behavioral_ts = metadata['Behavior']['BehavioralTimeSeries']['time_series']

@@ -1,9 +1,12 @@
 from pynwb.ecephys import ElectricalSeries
 from hdmf.data_utils import DataChunkIterator
+from jaeger_lab_to_nwb.resources.create_nwbfile import create_nwbfile
 from jaeger_lab_to_nwb.resources.load_intan import load_intan, read_header
 
+from datetime import datetime
 import numpy as np
 import pandas as pd
+import copy
 import os
 
 
@@ -28,6 +31,7 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
 
     # Gets header data from first file
     all_files = [os.path.join(source_dir, file) for file in os.listdir(source_dir) if file.endswith(".rhd")]
+    all_files.sort()
     fid = open(all_files[0], 'rb')
     header = read_header.read_header(fid)
     sampling_rate = header['sample_rate']
@@ -36,6 +40,16 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
     file_data = load_intan.read_data(filename=all_files[0])
     electrodes_info = file_data['amplifier_channels']
     n_electrodes = len(electrodes_info)
+
+    # Get initial metadata
+    meta_init = copy.deepcopy(metadata)
+    if nwbfile is None:
+        date_string = all_files[0].split('.')[0].split('_')[1]
+        time_string = all_files[0].split('.')[0].split('_')[2]
+        date_time_string = date_string + ' ' + time_string
+        date_time_obj = datetime.strptime(date_time_string, '%y%m%d %H%M%S')
+        meta_init['NWBFile']['session_start_time'] = date_time_obj
+        nwbfile = create_nwbfile(meta_init)
 
     # Gets electricalseries conversion factor
     es_conversion_factor = file_data['amplifier_data_conversion_factor']
