@@ -10,16 +10,7 @@ def create_nwbfile(metadata):
 
     # Add subject metadata
     if 'Subject' in metadata:
-        experiment_subject = Subject(
-            age=metadata['Subject']['age'],
-            subject_id=metadata['Subject']['subject_id'],
-            species=metadata['Subject']['species'],
-            description=metadata['Subject']['description'],
-            genotype=metadata['Subject']['genotype'],
-            date_of_birth=metadata['Subject']['date_of_birth'],
-            weight=metadata['Subject']['weight'],
-            sex=metadata['Subject']['sex']
-        )
+        experiment_subject = Subject(**metadata['Subject'])
         nwbfile.subject = experiment_subject
 
     return nwbfile

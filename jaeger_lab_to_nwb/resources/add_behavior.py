@@ -1,7 +1,8 @@
 from pynwb.behavior import BehavioralTimeSeries, BehavioralEvents
+from pynwb.ogen import OptogeneticStimulusSite, OptogeneticSeries
 from jaeger_lab_to_nwb.resources.create_nwbfile import create_nwbfile
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import copy
@@ -128,10 +129,68 @@ def add_behavior_bpod(nwbfile, metadata, source_file):
     return nwbfile
 
 
-def add_behavior_treadmill(nwbfile, metadata, treadmill_file, nose_file):
+def add_behavior_treadmill(nwbfile, metadata, dir_behavior_treadmill):
     """
     Reads treadmill experiment behavioral data from csv files and adds it to nwbfile.
     """
+    # Detect relevant files: trials summary, treadmill data and nose data
+    all_files = os.listdir(dir_behavior_treadmill)
+    trials_file = [f for f in all_files if ('_tr.csv' in f and '~lock' not in f)][0]
+    treadmill_file = trials_file.split('_tr')[0] + '.csv'
+    nose_file = trials_file.split('_tr')[0] + '_mk.csv'
+
+    trials_file = os.path.join(dir_behavior_treadmill, trials_file)
+    treadmill_file = os.path.join(dir_behavior_treadmill, treadmill_file)
+    nose_file = os.path.join(dir_behavior_treadmill, nose_file)
+
+    # Get initial metadata
+    meta_init = copy.deepcopy(metadata)
+    if nwbfile is None:
+        date_string = trials_file[0].split('.')[0].split('_')[1]
+        time_string = trials_file[0].split('.')[0].split('_')[2]
+        date_time_string = date_string + ' ' + time_string
+        date_time_obj = datetime.strptime(date_time_string, '%y%m%d %H%M%S')
+        meta_init['NWBFile']['session_start_time'] = date_time_obj
+        nwbfile = create_nwbfile(meta_init)
+
+    # Add trials
+    if nwbfile.trials is not None:
+        print('Trials already exist in current nwb file. Treadmill behavior trials not added.')
+    else:
+        df_trials_summary = pd.read_csv(trials_file)
+
+        nwbfile.add_trial_column(name='fail', description='')
+        nwbfile.add_trial_column(name='reward_given', description='')
+        nwbfile.add_trial_column(name='total_rewards', description='')
+        nwbfile.add_trial_column(name='init_dur', description='')
+        nwbfile.add_trial_column(name='light_dur', description='')
+        nwbfile.add_trial_column(name='motor_dur', description='')
+        nwbfile.add_trial_column(name='post_motor', description='')
+        nwbfile.add_trial_column(name='speed', description='')
+        nwbfile.add_trial_column(name='speed_mode', description='')
+        nwbfile.add_trial_column(name='amplitude', description='')
+        nwbfile.add_trial_column(name='period', description='')
+        nwbfile.add_trial_column(name='deviation', description='')
+
+        t_offset = df_trials_summary.loc[0]['Start Time']
+        for index, row in df_trials_summary.iterrows():
+            nwbfile.add_trial(
+                start_time=row['Start Time'] - t_offset,
+                stop_time=row['End Time'] - t_offset,
+                fail=row['Fail'],
+                reward_given=row['Reward Given'],
+                total_rewards=row['Total Rewards'],
+                init_dur=row['Init Dur'],
+                light_dur=row['Light Dur'],
+                motor_dur=row['Motor Dur'],
+                post_motor=row['Post Motor'],
+                speed=row['Speed'],
+                speed_mode=row['Speed Mode'],
+                amplitude=row['Amplitude'],
+                period=row['Period'],
+                deviation=row['+/- Deviation'],
+            )
+
     # Create BehavioralTimeSeries container
     behavioral_ts = BehavioralTimeSeries()
     meta_behavioral_ts = metadata['Behavior']['BehavioralTimeSeries']['time_series']
@@ -159,114 +218,172 @@ def add_behavior_treadmill(nwbfile, metadata, treadmill_file, nose_file):
     return nwbfile
 
 
-def add_behavior_labview(nwbfile, source_dir, metadata):
+def add_behavior_labview(nwbfile, metadata, dir_behavior_labview):
     """
     Reads behavioral data from txt files and adds it to nwbfile.
     """
+    # Get list of trial summary files
+    all_files = os.listdir(dir_behavior_labview)
+    trials_files = [f for f in all_files if '_sum.txt' in f]
+    trials_files.sort()
 
-    # Adds trials
-    fname_summary = 'GPi4_020619_AP3_4_OPTO_tr.txt'
-    fpath_summary = os.path.join(source_dir, fname_summary)
-    df_trials_summary = pd.read_csv(fpath_summary, sep='\t', index_col=False)
+    # Get session_start_time from first file timestamps
+    labview_time_offset = datetime.strptime('01/01/1904 00:00:00', '%m/%d/%Y %H:%M:%S')  # LabView timestamps offset
+    fpath = os.path.join(dir_behavior_labview, trials_files[0])
+    colnames = ['Trial', 'StartT', 'EndT', 'Result', 'InitT', 'SpecificResults',
+                'ProbLeft', 'OptoDur', 'LRew', 'RRew', 'InterT', 'LTrial',
+                'ReactionTime', 'OptoCond', 'OptoTrial']
+    df_0 = pd.read_csv(fpath, sep='\t', index_col=False, names=colnames)
+    t0 = df_0['StartT'][0]   # initial time in Labview seconds
+    session_start_time = labview_time_offset + timedelta(seconds=t0)
 
-    nwbfile.add_trial_column(
-        name='results',
-        description="0 means sucess (rewarded trial), 1 means licks during intitial "
-                    "period, which leads to a failed trial. 2 means early lick failure. 3 means "
-                    "wrong lick or no response."
-    )
-    nwbfile.add_trial_column(
-        name='init_t',
-        description="duration of initial delay period."
-    )
-    nwbfile.add_trial_column(
-        name='sample_t',
-        description="airpuff duration based on the LabView GUI parameter; not "
-                    "the actually air-puff duration."
-    )
-    nwbfile.add_trial_column(
-        name='prob_left',
-        description="probability for left trials in order to keep the number of "
-                    "left and right trials balanced within the session. "
-    )
-    nwbfile.add_trial_column(
-        name='rew_t',
-        description="reward Time based on the LabView GUI parameter. Not the "
-                    "actually reward time of the trial. There is no reward if the animal "
-                    "fails the trial."
-    )
-    nwbfile.add_trial_column(
-        name='l_rew_n',
-        description="counting the number of left rewards."
-    )
-    nwbfile.add_trial_column(
-        name='r_rew_n',
-        description="counting the number of rightrewards."
-    )
-    nwbfile.add_trial_column(
-        name='inter_t',
-        description="inter-trial delay period."
-    )
-    nwbfile.add_trial_column(
-        name='l_trial',
-        description="trial type (which side the air-puff is applied). 1 means "
-                    "left-trial, 0 means right-trial"
-    )
-    nwbfile.add_trial_column(
-        name='free_lick',
-        description="whether the animal is allowed to lick the wrong side during "
-                    "response period (1 yes; 0 no). This mode is rarely on."
-    )
-    nwbfile.add_trial_column(
-        name='opto_cond',
-        description="optical condition. Supposedly, it should indicate which type "
-                    "of the optical stimulation is applied. However, this column does not"
-                    "represent the correct optical conditions. *Correct optical conditions "
-                    "is recovered based on 'processRaw_UpdateSum.m' file."
-    )
-    nwbfile.add_trial_column(
-        name='opto_trial',
-        description="pre-determined opto trials: 1 opto trial; 0 non-opto. However, "
-                    "an opto-trial might not actually have optical stimulation if the animal "
-                    "fails before the optical stimulation. *'processRaw_UpdateSum.m' also "
-                    "goes through the raw data to update the wrongly labeled opto trials."
-    )
-    for index, row in df_trials_summary.iterrows():
-        nwbfile.add_trial(
-            start_time=row['StartT'],
-            stop_time=row['EndT'],
-            results=int(row['Result']),
-            init_t=row['InitT'],
-            sample_t=int(row['SampleT']),
-            prob_left=row['ProbLeft'],
-            rew_t=row['RewT'],
-            l_rew_n=int(row['LRew#']),
-            r_rew_n=int(row['RRew#']),
-            inter_t=row['InterT'],
-            l_trial=int(row['LTrial']),
-            free_lick=int(row['Free Lick']),
-            opto_cond=int(row['OptoCond']),
-            opto_trial=int(row['OptoTrial']),
+    # Create nwbfile / test for matching start_time in existing nwbfile
+    meta_init = copy.deepcopy(metadata)
+    if nwbfile is None:
+        meta_init['NWBFile']['session_start_time'] = session_start_time
+        nwbfile = create_nwbfile(meta_init)
+    else:
+        if session_start_time != nwbfile.session_start_time:
+            print("Session start time in current nwbfile does not match the start time from Labview files.")
+            print("Labview data conversion aborted.")
+            return nwbfile
+
+    # Add trials
+    if nwbfile.trials is not None:
+        print('Trials already exist in current nwb file. Labview behavior trials not added.')
+    else:
+        # Make dataframe
+        frames = []
+        for f in trials_files:
+            fpath = os.path.join(dir_behavior_labview, f)
+            frames.append(pd.read_csv(fpath, sep='\t', index_col=False, names=colnames))
+        df_trials_summary = pd.concat(frames)
+
+        nwbfile.add_trial_column(
+            name='results',
+            description="0 means sucess (rewarded trial), 1 means licks during intitial "
+                        "period, which leads to a failed trial. 2 means early lick failure. 3 means "
+                        "wrong lick or no response."
         )
+        nwbfile.add_trial_column(
+            name='init_t',
+            description="duration of initial delay period."
+        )
+        nwbfile.add_trial_column(
+            name='specific_results',
+            description="Possible outcomes classified based on raw data & meta file (_tr.m)."
+        )
+        nwbfile.add_trial_column(
+            name='prob_left',
+            description="probability for left trials in order to keep the number of "
+                        "left and right trials balanced within the session. "
+        )
+        nwbfile.add_trial_column(
+            name='opto_dur',
+            description="the duration of optical stimulation."
+        )
+        nwbfile.add_trial_column(
+            name='l_rew_n',
+            description="counting the number of left rewards."
+        )
+        nwbfile.add_trial_column(
+            name='r_rew_n',
+            description="counting the number of rightrewards."
+        )
+        nwbfile.add_trial_column(
+            name='inter_t',
+            description="inter-trial delay period."
+        )
+        nwbfile.add_trial_column(
+            name='l_trial',
+            description="trial type (which side the air-puff is applied). 1 means "
+                        "left-trial, 0 means right-trial"
+        )
+        nwbfile.add_trial_column(
+            name='reaction_time',
+            description="if it is a successful trial or wrong lick during response "
+                        "period trial: ReactionTime = time between the first decision "
+                        "lick and the beginning of the response period. If it is a failed "
+                        "trial due to early licks: reaction time = the duration of "
+                        "the air-puff period (in other words, when the animal licks "
+                        "during the sample period)."
+        )
+        nwbfile.add_trial_column(
+            name='opto_cond',
+            description="0: no opto. 1: opto is on during sample period. "
+                        "2: opto is on half way through the sample period (0.5s) "
+                        "and 0.5 during the response period. 3. opto is on during "
+                        "the response period."
+        )
+        nwbfile.add_trial_column(
+            name='opto_trial',
+            description="1: opto trials. 0: Non-opto trials."
+        )
+        for index, row in df_trials_summary.iterrows():
+            nwbfile.add_trial(
+                start_time=row['StartT'] - t0,
+                stop_time=row['EndT'] - t0,
+                results=int(row['Result']),
+                init_t=row['InitT'],
+                specific_results=int(row['SpecificResults']),
+                prob_left=row['ProbLeft'],
+                opto_dur=row['OptoDur'],
+                l_rew_n=int(row['LRew']),
+                r_rew_n=int(row['RRew']),
+                inter_t=row['InterT'],
+                l_trial=int(row['LTrial']),
+                reaction_time=int(row['ReactionTime']),
+                opto_cond=int(row['OptoCond']),
+                opto_trial=int(row['OptoTrial']),
+            )
+
+    # Get list of files: continuous data
+    continuous_files = [f.replace('_sum', '') for f in trials_files]
 
     # Adds continuous behavioral data
-    fname_lick = 'GPi4_020619_AP3_4_OPTO.txt'
-    fpath_lick = os.path.join(source_dir, fname_lick)
-    df_lick = pd.read_csv(fpath_lick, sep='\t', index_col=False)
+    frames = []
+    for f in continuous_files:
+        fpath_lick = os.path.join(dir_behavior_labview, f)
+        frames.append(pd.read_csv(fpath_lick, sep='\t', index_col=False))
+    df_continuous = pd.concat(frames)
 
+    # Behavioral data
     behavioral_ts = BehavioralTimeSeries()
     behavioral_ts.create_timeseries(
         name="left_lick",
-        data=df_lick['Lick 1'].to_numpy(),
-        timestamps=df_lick['Time'].to_numpy(),
+        data=df_continuous['Lick 1'].to_numpy(),
+        timestamps=df_continuous['Time'].to_numpy() - t0,
         description="ADDME"
     )
     behavioral_ts.create_timeseries(
         name="right_lick",
-        data=df_lick['Lick 2'].to_numpy(),
-        timestamps=df_lick['Time'].to_numpy(),
+        data=df_continuous['Lick 2'].to_numpy(),
+        timestamps=df_continuous['Time'].to_numpy() - t0,
         description="ADDME"
     )
     nwbfile.add_acquisition(behavioral_ts)
+
+    # Optogenetics stimulation data
+    ogen_device = nwbfile.create_device(name=metadata['Ogen']['Device'][0]['name'])
+
+    meta_ogen_site = metadata['Ogen']['OptogeneticStimulusSite'][0]
+    ogen_stim_site = OptogeneticStimulusSite(
+        name=meta_ogen_site['name'],
+        device=ogen_device,
+        description=meta_ogen_site['description'],
+        excitation_lambda=meta_ogen_site['excitation_lambda'],
+        location=meta_ogen_site['location']
+    )
+    nwbfile.add_ogen_site(ogen_stim_site)
+
+    meta_ogen_series = metadata['Ogen']['OptogeneticSeries'][0]
+    ogen_series = OptogeneticSeries(
+        name=meta_ogen_series['name'],
+        data=df_continuous['Opto'].to_numpy(),
+        site=ogen_stim_site,
+        timestamps=df_continuous['Time'].to_numpy() - t0,
+        description=meta_ogen_series['description'],
+    )
+    nwbfile.add_stimulus(ogen_series)
 
     return nwbfile

@@ -1,0 +1,27 @@
+NWBFile:
+  experimenter: experimenter
+  identifier: ADDME
+  institution: Emory University
+  lab: Jaeger lab
+  session_description: ADDME
+  session_start_time: 2018-08-09 10:00:00
+  surgery: "75 nL of AAV2/DIO - EF1a - hChR2-EYFP was injected to GPi (AP: 1.13, ML 1m95, DV -4.20).
+           The optic fiber was implanted 0.2 mm above VM (AP: 1.50, ML: 0.90, VD: -3.80). "
+Subject:
+  sex: female
+  weight: 23g
+  date_of_birth: 2018-12-28 00:00:00
+Ogen:
+  Device:
+    - name: 470nm blue laser (Shanghai Dream Lasers)
+  OptogeneticStimulusSite:
+    - name: OptogeneticStimulusSite
+      device: 470nm blue laser (Shanghai Dream Lasers)
+      description: "VM coordinates in relation to Bregma (in mm): Anterior/Posterior:
+                   1.50, Medial/Lateral: 0.90, Ventral/Dorsal: -4.00."
+      excitation_lambda: 470.
+      location: ventromedial thalamus (VM)
+  OptogeneticSeries:
+    - name: OptogeneticSeries
+      site: OptogeneticStimulusSite
+      description: ADDME

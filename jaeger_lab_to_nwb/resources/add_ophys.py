@@ -2,10 +2,13 @@ from pynwb.ophys import OpticalChannel
 from pynwb.device import Device
 from ndx_fret import FRET, FRETSeries
 from hdmf.data_utils import DataChunkIterator
+from jaeger_lab_to_nwb.resources.create_nwbfile import create_nwbfile
 
 from datetime import datetime
+from pathlib import Path
 import numpy as np
 import struct
+import copy
 import os
 
 
@@ -37,7 +40,7 @@ def read_trial_meta(trial_meta):
     return file_rsm, files_raw, acquisition_date, sample_rate, n_frames
 
 
-def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
+def add_ophys_rsd(nwbfile, metadata, dir_cortical_imaging):
     """
     Reads optophysiology raw data from .rsd files and adds it to nwbfile.
     XXXXXXX_A.rsd - Raw data from donor
@@ -47,13 +50,13 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
     def data_gen(channel, trial):
         """channel = 'A' or 'B'"""
         # Read trial-specific metadata file .rsh
-        trial_meta = os.path.join(source_dir, "VSFP_01A0801-" + str(trial) + "_" + channel + ".rsh")
+        trial_meta = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + trial + "_" + channel + ".rsh")
         file_rsm, files_raw, acquisition_date, sample_rate, n_frames = read_trial_meta(trial_meta=trial_meta)
 
         # Iterates over all files within the same trial
         for fn, fraw in enumerate(files_raw):
-            print('adding channel ' + channel + ', trial: ', str(trial), ': ', 100 * fn / len(files_raw), '%')
-            fpath = os.path.join(source_dir, fraw)
+            print('adding channel ' + channel + ', trial: ', trial, ': ', 100 * fn / len(files_raw), '%')
+            fpath = os.path.join(dir_cortical_imaging, fraw)
 
             # Open file as a byte array
             with open(fpath, "rb") as f:
@@ -78,6 +81,25 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
             #     analog_2 = np.squeeze(np.squeeze(excess_frames[:, 14, 0:80:4]).reshape(20*256, 1))
             #     stim_trg = np.squeeze(np.squeeze(excess_frames[:, 8, 0:80:4]).reshape(20*256, 1))
 
+    # Get session_start_time from first header file
+    all_files = os.listdir(dir_cortical_imaging)
+    all_headers = [f for f in all_files if ('.rsh' in f) and ('_A' not in f) and ('_B' not in f)]
+    all_headers.sort()
+    _, _, acquisition_date, _, _ = read_trial_meta(trial_meta=Path(dir_cortical_imaging) / all_headers[0])
+    session_start_time = datetime.strptime(acquisition_date, '%Y/%m/%d %H:%M:%S')
+    print(session_start_time)
+
+    # Get initial metadata
+    meta_init = copy.deepcopy(metadata)
+    if nwbfile is None:
+        meta_init['NWBFile']['session_start_time'] = session_start_time
+        nwbfile = create_nwbfile(meta_init)
+    else:
+        if session_start_time != nwbfile.session_start_time:
+            print("Session start time in current nwbfile does not match the start time from rsd files.")
+            print("Ophys data conversion aborted.")
+            return nwbfile
+
     # Create and add device
     device = Device(name=metadata['Ophys']['Device'][0]['name'])
     nwbfile.add_device(device)
@@ -98,11 +120,19 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
         emission_lambda=meta_acceptor['optical_channel'][0]['emission_lambda']
     )
 
+    # Add trials intervals values only if no trials data exists in nwbfile
+    if nwbfile.trials is not None:
+        add_trials = False
+        print('Trials already exist in current nwb file. Ophys trials intervals not added.')
+    else:
+        add_trials = True
+
     # Iterate over trials, creates a FRET group per trial
-    for tr in trials:
+    trials_numbers = [f.split('-')[1].replace('.rsh', '') for f in all_headers]
+    for tr in trials_numbers:
         # Read trial-specific metadata file .rsh
-        trial_meta_A = os.path.join(source_dir, "VSFP_01A0801-" + str(tr) + "_A.rsh")
-        trial_meta_B = os.path.join(source_dir, "VSFP_01A0801-" + str(tr) + "_B.rsh")
+        trial_meta_A = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + tr + "_A.rsh")
+        trial_meta_B = os.path.join(dir_cortical_imaging, "VSFP_01A0801-" + tr + "_B.rsh")
         file_rsm_A, files_raw_A, acquisition_date_A, sample_rate_A, n_frames_A = read_trial_meta(trial_meta=trial_meta_A)
         file_rsm_B, files_raw_B, acquisition_date_B, sample_rate_B, n_frames_B = read_trial_meta(trial_meta=trial_meta_B)
 
@@ -118,13 +148,6 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
             "Number of frames of channels do not match. Trial=" + str(tr)
         assert relative_start_time >= 0., \
             "Starting time is negative. Trial=" + str(tr)
-
-        # Adds trial
-        tr_stop = relative_start_time + n_frames_A / sample_rate_A
-        nwbfile.add_trial(
-            start_time=relative_start_time,
-            stop_time=tr_stop
-        )
 
         # Create iterator
         data_donor = DataChunkIterator(
@@ -173,5 +196,13 @@ def add_ophys_rsd(nwbfile, source_dir, metadata, trials):
             acceptor=frets_acceptor
         )
         nwbfile.add_acquisition(fret)
+
+        # Adds trial
+        if add_trials:
+            tr_stop = relative_start_time + n_frames_A / sample_rate_A
+            nwbfile.add_trial(
+                start_time=relative_start_time,
+                stop_time=tr_stop
+            )
 
     return nwbfile
