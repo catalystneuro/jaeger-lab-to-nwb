@@ -3,18 +3,17 @@
 # written for Jaeger Lab
 # ------------------------------------------------------------------------------
 from nwbn_conversion_tools.gui.nwbn_conversion_gui import nwbn_conversion_gui
-
-import os
+from pathlib import Path
 
 
 def main():
-    here = os.path.dirname(os.path.realpath(__file__))
-    metafile = os.path.join(here, 'metafile.yml')
-    conversion_module = os.path.join(here, 'conversion_module.py')
+    here = Path(__file__).parent
+    metafile = here / 'metafile.yml'
+    conversion_module = here.parent / 'conversion_module.py'
 
     # Source paths
     source_paths = dict()
-    source_paths['file_behavior_labview'] = {'type': 'file', 'path': ''}
+    source_paths['dir_behavior_labview'] = {'type': 'dir', 'path': ''}
 
     # Lab-specific kwargs
     kwargs_fields = {
