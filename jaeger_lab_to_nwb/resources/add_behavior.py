@@ -374,6 +374,7 @@ def add_behavior_labview(nwbfile, metadata, dir_behavior_labview):
         excitation_lambda=meta_ogen_site['excitation_lambda'],
         location=meta_ogen_site['location']
     )
+    nwbfile.add_ogen_site(ogen_stim_site)
 
     meta_ogen_series = metadata['Ogen']['OptogeneticSeries'][0]
     ogen_series = OptogeneticSeries(
