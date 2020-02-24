@@ -5,7 +5,7 @@ from pynwb import NWBHDF5IO
 from jaeger_lab_to_nwb.resources.add_behavior import (add_behavior_bpod, add_behavior_treadmill,
                                                       add_behavior_labview)
 from jaeger_lab_to_nwb.resources.add_ecephys import add_ecephys_rhd
-from jaeger_lab_to_nwb.resources.add_ophys import add_ophys_rsd, read_trial_meta
+from jaeger_lab_to_nwb.resources.add_ophys import add_ophys_rsd
 import yaml
 import os
 
@@ -90,6 +90,14 @@ def conversion_function(source_paths, f_nwb, metadata, add_bpod=False, add_tread
             nwbfile=nwbfile,
             metadata=metadata,
             dir_behavior_labview=dir_behavior_labview
+        )
+
+    # Adding optophys imaging data
+    if add_ophys:
+        nwbfile = add_ophys_rsd(
+            nwbfile=nwbfile,
+            metadata=metadata,
+            dir_cortical_imaging=dir_cortical_imaging
         )
 
     # Saves to NWB file

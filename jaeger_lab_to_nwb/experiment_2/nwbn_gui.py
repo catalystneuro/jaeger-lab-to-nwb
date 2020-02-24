@@ -15,12 +15,10 @@ def main():
     # Source paths
     source_paths = dict()
     source_paths['dir_cortical_imaging'] = {'type': 'dir', 'path': ''}
-    source_paths['dir_behavior_labview'] = {'type': 'dir', 'path': ''}
 
     # Lab-specific kwargs
     kwargs_fields = {
         'add_ophys': True,
-        'add_behavior': True
     }
 
     # Extensions modules and classes
