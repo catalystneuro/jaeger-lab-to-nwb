@@ -10,8 +10,8 @@ import yaml
 import os
 
 
-def conversion_function(source_paths, f_nwb, metadata, add_bpod, add_treadmill,
-                        add_rhd, add_ophys, add_labview, **kwargs):
+def conversion_function(source_paths, f_nwb, metadata, add_bpod=False, add_treadmill=False,
+                        add_rhd=False, add_ophys=False, add_labview=False, **kwargs):
     """
     Convert data from a diversity of experiment types to nwb.
 
@@ -89,7 +89,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_bpod, add_treadmill,
         nwbfile = add_behavior_labview(
             nwbfile=nwbfile,
             metadata=metadata,
-            source_dir=dir_behavior_labview
+            dir_behavior_labview=dir_behavior_labview
         )
 
     # Saves to NWB file
@@ -99,10 +99,6 @@ def conversion_function(source_paths, f_nwb, metadata, add_bpod, add_treadmill,
 
 
 def main():
-    """
-    Usage: python conversion_module.py [output_file] [metafile] [file_behavior_bpod]
-    [-add_behavior]
-    """
     import argparse
     import sys
 
@@ -116,7 +112,6 @@ def main():
     parser.add_argument(
         "file_behavior_bpod", help="The path to the directory containing rhd files."
     )
-
     parser.add_argument(
         "dir_behavior_treadmill", help="The path to the directory containing treadmill behavior data files."
     )
@@ -125,6 +120,9 @@ def main():
     )
     parser.add_argument(
         "file_electrodes", help="The path to the electrodes info file."
+    )
+    parser.add_argument(
+        "dir_behavior_labview", help="The path to the directory containing labviewl behavior data files."
     )
 
     parser.add_argument(
@@ -145,6 +143,12 @@ def main():
         default=False,
         help="Whether to add the treadmill behavior data to the NWB file or not",
     )
+    parser.add_argument(
+        "--add_labview",
+        action="store_true",
+        default=False,
+        help="Whether to add the treadmill behavior data to the NWB file or not",
+    )
 
     if not sys.argv[1:]:
         args = parser.parse_args(["--help"])
@@ -154,9 +158,10 @@ def main():
     # Setting conversion function args and kwargs
     source_paths = {
         'file_behavior_bpod': {'type': 'dir', 'path': args.dir_ecephys_rhd},
-        'dir_behavior_treadmill': {'type': 'dir', 'path': args.dir_behavior},
+        'dir_behavior_treadmill': {'type': 'dir', 'path': args.dir_behavior_treadmill},
         'dir_ecephys_rhd': {'type': 'dir', 'path': args.dir_ecephys_rhd},
         'file_electrodes': {'type': 'file', 'path': args.file_electrodes},
+        'dir_behavior_labview': {'type': 'dir', 'path': args.dir_behavior_labview},
     }
 
     f_nwb = args.output_file
@@ -171,6 +176,7 @@ def main():
         'add_bpod': args.add_bpod,
         'add_treadmill': args.add_treadmill,
         'add_rhd': args.add_rhd,
+        'add_labview': args.add_labview
     }
 
     conversion_function(source_paths=source_paths,
