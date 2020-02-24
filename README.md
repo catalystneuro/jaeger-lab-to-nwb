@@ -4,7 +4,8 @@ Convert [Jaeger lab](https://scholarblogs.emory.edu/jaegerlab/) data to NWB form
 Currently includes:
 * FRET optical imaging (rsd)
 * Intan electrophysiology (rhd)
-* Labview behavioral data (csv)
+* Labview behavioral data (txt)
+* Treadmill behavior (csv)
 * Bpod behavioral data (mat)
 
 Authors: Luiz Tauffer and Ben Dichter
@@ -39,7 +40,7 @@ base_path = Path(PATH_TO_FILES)
 source_paths = dict()
 source_paths['dir_ecephys_rhd'] = {'type': 'dir', 'path': base_path}
 source_paths['file_electrodes'] = {'type': 'file', 'path': base_path.joinpath('UD09_impedance_1.csv')}
-source_paths['dir_behavior'] = {'type': 'dir', 'path': base_path}
+source_paths['dir_behavior_treadmill'] = {'type': 'dir', 'path': base_path}
 
 # Output .nwb file
 f_nwb = 'my_experiment.nwb'
@@ -51,8 +52,8 @@ with open(metafile) as f:
 
 # Lab-specific kwargs
 kwargs_fields = {
-    'add_ecephys': True,
-    'add_behavior': True
+    'add_rhd': True,
+    'add_treadmill': True
 }
 
 conversion_function(source_paths=source_paths,
