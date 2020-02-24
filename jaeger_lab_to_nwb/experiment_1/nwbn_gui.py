@@ -15,12 +15,12 @@ def main():
     source_paths = dict()
     source_paths['dir_ecephys_rhd'] = {'type': 'dir', 'path': ''}
     source_paths['file_electrodes'] = {'type': 'file', 'path': ''}
-    source_paths['dir_behavior'] = {'type': 'dir', 'path': ''}
+    source_paths['dir_behavior_treadmill'] = {'type': 'dir', 'path': ''}
 
     # Lab-specific kwargs
     kwargs_fields = {
-        'add_ecephys': True,
-        'add_behavior': True
+        'add_rhd': True,
+        'add_treadmill': True
     }
 
     nwbn_conversion_gui(
