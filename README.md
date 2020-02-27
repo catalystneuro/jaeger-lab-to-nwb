@@ -73,14 +73,17 @@ with pynwb.NWBHDF5IO(f_nwb, 'r') as io:
 Similarly, the conversion function can be called from the command line in terminal:
 ```shell
 $ python conversion_module.py [output_file] [metafile] [--file_behavior_bpod]
-[--dir_behavior_treadmill] [--dir_ecephys_rhd] [--file_electrodes] [--dir_behavior_labview] [--dir_cortical_imaging] [--add_bpod] [--add_rhd] [--add_treadmill] [--add_labview] [--add_ophys]
+[--dir_behavior_treadmill] [--dir_ecephys_rhd] [--file_electrodes]
+[--dir_behavior_labview] [--dir_cortical_imaging] [--add_bpod] [--add_rhd]
+[--add_treadmill] [--add_labview] [--add_ophys]
 ```
 <br/>
 
 For example, the same experiment converted above with a python script could be converted with this command line input:
 ```shell
 $ python conversion_module.py my_experiment.nwb metafile.yml --add_rhd --add_treadmill
---dir_behavior_treadmill PATH_TO_FILES --dir_ecepys_rhd PATH_TO_FILES --file_electrodes PATH_TO_FILES\UD09_impedance_1.csv
+--dir_behavior_treadmill PATH_TO_FILES --dir_ecepys_rhd PATH_TO_FILES
+--file_electrodes PATH_TO_FILES\UD09_impedance_1.csv
 ```
 
 **3. Graphical User Interface:** <br/>
