@@ -64,7 +64,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_bpod=False, add_tread
         nwbfile = add_behavior_bpod(
             nwbfile=nwbfile,
             metadata=metadata,
-            source_file=file_behavior_bpod,
+            file_behavior_bpod=file_behavior_bpod,
         )
 
     # Adding ecephys
@@ -195,7 +195,7 @@ def main():
 
     # Setting conversion function args and kwargs
     source_paths = {
-        'file_behavior_bpod': {'type': 'dir', 'path': args.dir_ecephys_rhd},
+        'file_behavior_bpod': {'type': 'dir', 'path': args.file_behavior_bpod},
         'dir_behavior_treadmill': {'type': 'dir', 'path': args.dir_behavior_treadmill},
         'dir_ecephys_rhd': {'type': 'dir', 'path': args.dir_ecephys_rhd},
         'file_electrodes': {'type': 'file', 'path': args.file_electrodes},

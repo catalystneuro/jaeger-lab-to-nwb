@@ -9,14 +9,14 @@ import copy
 import os
 
 
-def add_behavior_bpod(nwbfile, metadata, source_file):
+def add_behavior_bpod(nwbfile, metadata, file_behavior_bpod):
     """
     Reads behavioral data from bpod files and adds it to nwbfile.
     """
     from scipy.io import loadmat
 
     # Opens -.mat file and extracts data
-    fdata = loadmat(source_file, struct_as_record=False, squeeze_me=True)
+    fdata = loadmat(file_behavior_bpod, struct_as_record=False, squeeze_me=True)
 
     session_start_date = fdata['SessionData'].Info.SessionDate
     session_start_time = fdata['SessionData'].Info.SessionStartTime_UTC
