@@ -4,6 +4,7 @@ from jaeger_lab_to_nwb.resources.create_nwbfile import create_nwbfile
 from jaeger_lab_to_nwb.resources.load_intan import load_intan, read_header
 
 from datetime import datetime
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import copy
@@ -44,8 +45,8 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
     # Get initial metadata
     meta_init = copy.deepcopy(metadata)
     if nwbfile is None:
-        date_string = all_files[0].split('.')[0].split('_')[1]
-        time_string = all_files[0].split('.')[0].split('_')[2]
+        date_string = Path(all_files[0]).name.split('.')[0].split('_')[1]
+        time_string = Path(all_files[0]).name.split('.')[0].split('_')[2]
         date_time_string = date_string + ' ' + time_string
         date_time_obj = datetime.strptime(date_time_string, '%y%m%d %H%M%S')
         meta_init['NWBFile']['session_start_time'] = date_time_obj

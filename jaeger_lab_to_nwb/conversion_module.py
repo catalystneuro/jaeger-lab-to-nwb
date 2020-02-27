@@ -11,7 +11,7 @@ import os
 
 
 def conversion_function(source_paths, f_nwb, metadata, add_bpod=False, add_treadmill=False,
-                        add_rhd=False, add_labview=False, add_ophys=False,**kwargs):
+                        add_rhd=False, add_labview=False, add_ophys=False, **kwargs):
     """
     Convert data from a diversity of experiment types to nwb.
 
