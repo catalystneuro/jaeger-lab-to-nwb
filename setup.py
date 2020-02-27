@@ -19,6 +19,6 @@ setup(
         'matplotlib', 'cycler', 'scipy', 'numpy', 'jupyter', 'h5py', 'pynwb',
         'pyintan'],
     entry_points={
-        'console_scripts': ['nwbn-gui-jaeger=jaeger_lab_to_nwb.command_line:main'],
+        'console_scripts': ['nwbn-gui-jaeger=jaeger_lab_to_nwb.gui_command_line:main'],
     }
 )

@@ -11,7 +11,7 @@ import os
 
 
 def conversion_function(source_paths, f_nwb, metadata, add_bpod=False, add_treadmill=False,
-                        add_rhd=False, add_ophys=False, add_labview=False, **kwargs):
+                        add_rhd=False, add_labview=False, add_ophys=False,**kwargs):
     """
     Convert data from a diversity of experiment types to nwb.
 
@@ -110,29 +110,53 @@ def main():
     import argparse
     import sys
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "output_file", help="Output file to be created."
-    )
-    parser.add_argument(
-        "metafile", help="The path to the metadata YAML file."
-    )
-    parser.add_argument(
-        "file_behavior_bpod", help="The path to the directory containing rhd files."
-    )
-    parser.add_argument(
-        "dir_behavior_treadmill", help="The path to the directory containing treadmill behavior data files."
-    )
-    parser.add_argument(
-        "dir_ecephys_rhd", help="The path to the directory containing rhd files."
-    )
-    parser.add_argument(
-        "file_electrodes", help="The path to the electrodes info file."
-    )
-    parser.add_argument(
-        "dir_behavior_labview", help="The path to the directory containing labviewl behavior data files."
+    parser = argparse.ArgumentParser(
+        description='convert .mat file to NWB',
     )
 
+    # Positional arguments
+    parser.add_argument(
+        "output_file",
+        help="Output file to be created."
+    )
+    parser.add_argument(
+        "metafile",
+        help="The path to the metadata YAML file."
+    )
+
+    # Source dir/file arguments
+    parser.add_argument(
+        "--file_behavior_bpod",
+        default=None,
+        help="The path to the directory containing rhd files."
+    )
+    parser.add_argument(
+        "--dir_behavior_treadmill",
+        default=None,
+        help="The path to the directory containing treadmill behavior data files."
+    )
+    parser.add_argument(
+        "--dir_ecephys_rhd",
+        default=None,
+        help="The path to the directory containing rhd files."
+    )
+    parser.add_argument(
+        "--file_electrodes",
+        default=None,
+        help="The path to the electrodes info file."
+    )
+    parser.add_argument(
+        "--dir_behavior_labview",
+        default=None,
+        help="The path to the directory containing labviewl behavior data files."
+    )
+    parser.add_argument(
+        "--dir_cortical_imaging",
+        default=None,
+        help="The path to the directory containing cortical imaging (rsd and rsh) data files."
+    )
+
+    # Boolean arguments
     parser.add_argument(
         "--add_bpod",
         action="store_true",
@@ -157,6 +181,12 @@ def main():
         default=False,
         help="Whether to add the treadmill behavior data to the NWB file or not",
     )
+    parser.add_argument(
+        "--add_ophys",
+        action="store_true",
+        default=False,
+        help="Whether to add the cortical imaging data to the NWB file or not",
+    )
 
     if not sys.argv[1:]:
         args = parser.parse_args(["--help"])
@@ -170,6 +200,7 @@ def main():
         'dir_ecephys_rhd': {'type': 'dir', 'path': args.dir_ecephys_rhd},
         'file_electrodes': {'type': 'file', 'path': args.file_electrodes},
         'dir_behavior_labview': {'type': 'dir', 'path': args.dir_behavior_labview},
+        'dir_cortical_imaging': {'type': 'dir', 'path': args.dir_cortical_imaging},
     }
 
     f_nwb = args.output_file
@@ -184,13 +215,16 @@ def main():
         'add_bpod': args.add_bpod,
         'add_treadmill': args.add_treadmill,
         'add_rhd': args.add_rhd,
-        'add_labview': args.add_labview
+        'add_labview': args.add_labview,
+        'add_ophys': args.add_ophys
     }
 
-    conversion_function(source_paths=source_paths,
-                        f_nwb=f_nwb,
-                        metadata=metadata,
-                        **kwargs_fields)
+    conversion_function(
+        source_paths=source_paths,
+        f_nwb=f_nwb,
+        metadata=metadata,
+        **kwargs_fields
+    )
 
 
 # If called directly fom terminal

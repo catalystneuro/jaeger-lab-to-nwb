@@ -8,13 +8,13 @@ import importlib
 
 def main():
     """
-    Command line use:
+    Command line shortcut to open GUI editor.
+    Use:
     $ nwbn-gui-jaeger [experiment]
 
-    experiment : str (e.g.: miao, lisu)
+    experiment : str (e.g.: experiment_1, experiment_2)
         experiment is optional, it should hold the name of the subdirectory in
-        the repo holding experiment-specific metafile.yml, conversion_module.py
-        and nwbn_gui.py
+        the repo holding experiment-specific metafile.yml and nwbn_gui.py
     """
     if len(sys.argv) > 1:
         experiment = sys.argv[1]

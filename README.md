@@ -30,7 +30,7 @@ After activating the correct environment, the conversion function can be used in
 Here's an example: we'll grab the data from a specific experiment, with several electrophysiology and behavioral data files stored `base_path`, and save it to a single `nwb` file.
 ```python
 import pynwb
-from jaeger_lab_to_nwb.lisu.conversion_module import conversion_function
+from jaeger_lab_to_nwb.conversion_module import conversion_function
 from pathlib import Path
 import yaml
 
@@ -70,11 +70,17 @@ with pynwb.NWBHDF5IO(f_nwb, 'r') as io:
 
 **2. Command line:** <br/>
 Similarly, the conversion function can be called from the command line in terminal:
-```
-$ python conversion_module.py [output_file] [metafile] [dir_ecephys_rhd]
-  [file_electrodes] [dir_behavior] [-add_ecephys] [-add_behavior]
+```shell
+$ python conversion_module.py [output_file] [metafile] [--file_behavior_bpod]
+[--dir_behavior_treadmill] [--dir_ecephys_rhd] [--file_electrodes] [--dir_behavior_labview] [--dir_cortical_imaging] [--add_bpod] [--add_rhd] [--add_treadmill] [--add_labview] [--add_ophys]
 ```
 <br/>
+
+For example, the same experiment converted above with a python script could be converted with this command line input:
+```shell
+$ python conversion_module.py my_experiment.nwb metafile.yml --add_rhd --add_treadmill
+--dir_behavior_treadmill PATH_TO_FILES --dir_ecepys_rhd PATH_TO_FILES --file_electrodes PATH_TO_FILES\UD09_impedance_1.csv
+```
 
 **3. Graphical User Interface:** <br/>
 To use the GUI, just type in the terminal:
