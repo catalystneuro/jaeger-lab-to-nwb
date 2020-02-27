@@ -5,6 +5,7 @@ Currently includes:
 * FRET optical imaging (rsd)
 * Intan electrophysiology (rhd)
 * Labview behavioral data (txt)
+* Optogenetics stimulation data (txt)
 * Treadmill behavior (csv)
 * Bpod behavioral data (mat)
 
