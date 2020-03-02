@@ -46,11 +46,11 @@ def add_behavior_bpod(nwbfile, metadata, file_behavior_bpod):
     trials_states_durations = [np.diff(dur) for dur in trials_states_timestamps]
 
     # # Add trials columns
-    nwbfile.add_trial_column(name='trial_type', description='')
-    nwbfile.add_trial_column(name='led_type', description='')
-    nwbfile.add_trial_column(name='reaching', description='')
-    nwbfile.add_trial_column(name='outcome', description='')
-    nwbfile.add_trial_column(name='states', description='', index=True)
+    nwbfile.add_trial_column(name='trial_type', description='no description')
+    nwbfile.add_trial_column(name='led_type', description='no description')
+    nwbfile.add_trial_column(name='reaching', description='no description')
+    nwbfile.add_trial_column(name='outcome', description='no description')
+    nwbfile.add_trial_column(name='states', description='no description', index=True)
 
     # Trials table structure:
     # trial_number | start | end | trial_type | led_type | reaching | outcome | states (list)
@@ -107,12 +107,12 @@ def add_behavior_bpod(nwbfile, metadata, file_behavior_bpod):
                 state_dur.append(np.nan)
         nwbfile.add_trial_column(
             name=state,
-            description='',
+            description='no description',
             data=state_data,
         )
         nwbfile.add_trial_column(
             name=state + '_dur',
-            description='',
+            description='no description',
             data=state_dur,
         )
 
@@ -159,18 +159,18 @@ def add_behavior_treadmill(nwbfile, metadata, dir_behavior_treadmill):
     else:
         df_trials_summary = pd.read_csv(trials_file)
 
-        nwbfile.add_trial_column(name='fail', description='')
-        nwbfile.add_trial_column(name='reward_given', description='')
-        nwbfile.add_trial_column(name='total_rewards', description='')
-        nwbfile.add_trial_column(name='init_dur', description='')
-        nwbfile.add_trial_column(name='light_dur', description='')
-        nwbfile.add_trial_column(name='motor_dur', description='')
-        nwbfile.add_trial_column(name='post_motor', description='')
-        nwbfile.add_trial_column(name='speed', description='')
-        nwbfile.add_trial_column(name='speed_mode', description='')
-        nwbfile.add_trial_column(name='amplitude', description='')
-        nwbfile.add_trial_column(name='period', description='')
-        nwbfile.add_trial_column(name='deviation', description='')
+        nwbfile.add_trial_column(name='fail', description='no description')
+        nwbfile.add_trial_column(name='reward_given', description='no description')
+        nwbfile.add_trial_column(name='total_rewards', description='no description')
+        nwbfile.add_trial_column(name='init_dur', description='no description')
+        nwbfile.add_trial_column(name='light_dur', description='no description')
+        nwbfile.add_trial_column(name='motor_dur', description='no description')
+        nwbfile.add_trial_column(name='post_motor', description='no description')
+        nwbfile.add_trial_column(name='speed', description='no description')
+        nwbfile.add_trial_column(name='speed_mode', description='no description')
+        nwbfile.add_trial_column(name='amplitude', description='no description')
+        nwbfile.add_trial_column(name='period', description='no description')
+        nwbfile.add_trial_column(name='deviation', description='no description')
 
         t_offset = df_trials_summary.loc[0]['Start Time']
         for index, row in df_trials_summary.iterrows():
