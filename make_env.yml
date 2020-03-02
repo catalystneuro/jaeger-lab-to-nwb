@@ -5,15 +5,16 @@ channels:
 - conda-forge
 dependencies:
 - python=3.7
+- pip
+- numpy
 - pip:
   - ipython
-  - pip
-  - numpy
   - scipy
   - pyside2
   - cycler
   - h5py
   - pynwb
   - hdmf
-  - git+https://github.com/NeurodataWithoutBorders/nwbn-conversion-tools
+  - nwbn-conversion-tools
+  - ndx-fret
   - -e .
