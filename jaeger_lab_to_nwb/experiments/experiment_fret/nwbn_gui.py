@@ -10,7 +10,7 @@ from pathlib import Path
 def main():
     here = Path(__file__).parent
     metafile = here / 'metafile.yml'
-    conversion_module = here.parent / 'conversion_module.py'
+    conversion_module = here.parent.parent / 'conversion_module.py'
 
     # Source paths
     source_paths = dict()
