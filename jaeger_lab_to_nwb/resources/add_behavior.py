@@ -353,13 +353,13 @@ def add_behavior_labview(nwbfile, metadata, dir_behavior_labview):
         name="left_lick",
         data=df_continuous['Lick 1'].to_numpy(),
         timestamps=df_continuous['Time'].to_numpy() - t0,
-        description="ADDME"
+        description="no description"
     )
     behavioral_ts.create_timeseries(
         name="right_lick",
         data=df_continuous['Lick 2'].to_numpy(),
         timestamps=df_continuous['Time'].to_numpy() - t0,
-        description="ADDME"
+        description="no description"
     )
     nwbfile.add_acquisition(behavioral_ts)
 

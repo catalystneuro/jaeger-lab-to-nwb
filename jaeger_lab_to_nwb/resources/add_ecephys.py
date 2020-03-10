@@ -98,7 +98,7 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
 
     electrode_table_region = nwbfile.create_electrode_table_region(
         region=list(np.arange(n_electrodes)),
-        description=''
+        description='no description'
     )
 
     # Create iterator
