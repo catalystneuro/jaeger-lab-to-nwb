@@ -1,12 +1,11 @@
 NWBFile:
-  experimenter: Yunmiao Wang
+  experimenter: ADDME
   identifier: ADDME
   institution: Emory University
   lab: Jaeger lab
   session_description: ADDME
   session_start_time: 2018-08-09 10:00:00
 Subject:
-  age: ADDME
   description: ADDME
   genotype: ADDME
   sex: ADDME
