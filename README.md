@@ -14,14 +14,14 @@ Authors: Luiz Tauffer and Ben Dichter
 # Install
 To clone the repository and set up a conda environment, do:
 ```
-$ git clone https://github.com/ben-dichter-consulting/jaeger-lab-data-to-nwb.git
+$ git clone https://github.com/ben-dichter-consulting/jaeger-lab-to-nwb.git
 $ conda env create -f jaeger_lab_to_nwb/make_env.yml
 $ source activate jaeger_nwb
 ```
 
 Alternatively, to install directly in an existing environment:
 ```
-$ pip install git+https://github.com/ben-dichter-consulting/jaeger-lab-data-to-nwb.git
+$ pip install git+https://github.com/ben-dichter-consulting/jaeger-lab-to-nwb.git
 ```
 
 # Use
