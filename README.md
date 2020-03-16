@@ -1,4 +1,4 @@
-# jaeger-lab-data-to-nwb
+# jaeger-lab-to-nwb
 Convert [Jaeger lab](https://scholarblogs.emory.edu/jaegerlab/) data to NWB format.<br>
 
 Currently includes:
@@ -21,7 +21,7 @@ $ source activate jaeger_nwb
 
 Alternatively, to install directly in an existing environment:
 ```
-$ pip install git+https://github.com/ben-dichter-consulting/jaeger-lab-to-nwb.git
+$ pip install jaeger-lab-to-nwb
 ```
 
 # Use
