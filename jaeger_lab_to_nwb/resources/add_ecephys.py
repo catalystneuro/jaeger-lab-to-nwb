@@ -37,11 +37,6 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
     header = read_header.read_header(fid)
     sampling_rate = header['sample_rate']
 
-    # Gets electrodes info from first rhd file
-    file_data = load_intan.read_data(filename=all_files[0])
-    electrodes_info = file_data['amplifier_channels']
-    n_electrodes = len(electrodes_info)
-
     # Get initial metadata
     meta_init = copy.deepcopy(metadata)
     if nwbfile is None:
@@ -51,9 +46,6 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
         date_time_obj = datetime.strptime(date_time_string, '%y%m%d %H%M%S')
         meta_init['NWBFile']['session_start_time'] = date_time_obj
         nwbfile = create_nwbfile(meta_init)
-
-    # Gets electricalseries conversion factor
-    es_conversion_factor = file_data['amplifier_data_conversion_factor']
 
     # Adds Device
     device = nwbfile.create_device(name=metadata['Ecephys']['Device'][0]['name'])
@@ -67,6 +59,11 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
             location=meta['location'],
             device=device
         )
+
+    # Gets electrodes info from first rhd file
+    file_data = load_intan.read_data(filename=all_files[0])
+    electrodes_info = file_data['amplifier_channels']
+    n_electrodes = len(electrodes_info)
 
     # Electrodes
     if electrodes_file is not None:  # if an electrodes info file was provided
@@ -110,6 +107,8 @@ def add_ecephys_rhd(nwbfile, metadata, source_dir, electrodes_file=None):
     )
 
     # Electrical Series
+    # Gets electricalseries conversion factor
+    es_conversion_factor = file_data['amplifier_data_conversion_factor']
     ephys_ts = ElectricalSeries(
         name=metadata['Ecephys']['ElectricalSeries'][0]['name'],
         description=metadata['Ecephys']['ElectricalSeries'][0]['description'],

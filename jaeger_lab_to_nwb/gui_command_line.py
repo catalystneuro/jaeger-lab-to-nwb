@@ -17,7 +17,7 @@ def main():
         the repo holding experiment-specific metafile.yml and nwbn_gui.py
     """
     if len(sys.argv) > 1:
-        experiment = sys.argv[1]
+        experiment = 'experiment_' + sys.argv[1]
 
         # Tests if module exists
         module_spec = importlib.util.find_spec("jaeger_lab_to_nwb.experiments." + experiment)
@@ -34,9 +34,9 @@ def main():
             gui.main()
         else:
             print("Module " + experiment + " does not exist. Running nwbn-gui without specific metadata.")
-            from nwbn_conversion_tools.gui import command_line as gui
+            from nwb_conversion_tools.gui import command_line as gui
             gui.main()
     else:
         print("Running nwbn-gui without specific metadata.")
-        from nwbn_conversion_tools.gui import command_line as gui
+        from nwb_conversion_tools.gui import command_line as gui
         gui.main()

@@ -15,10 +15,12 @@ setup(
     email='ben.dichter@gmail.com',
     packages=find_packages(),
     include_package_data=True,
-    package_data={'': ['*.yml']},
+    package_data={'jaeger_lab_to_nwb': [
+        'bpodconverter/*.yml',
+    ]},
     install_requires=[
         'matplotlib', 'cycler', 'scipy', 'numpy', 'jupyter', 'h5py', 'pynwb',
-        'pyintan', 'nwbn-conversion-tools', 'ndx-fret'],
+        'pyintan', 'nwb-conversion-tools', 'ndx-fret'],
     entry_points={
         'console_scripts': ['nwbn-gui-jaeger=jaeger_lab_to_nwb.gui_command_line:main'],
     }

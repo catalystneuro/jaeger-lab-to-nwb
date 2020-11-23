@@ -2,13 +2,13 @@
 # authors: Luiz Tauffer and Ben Dichter
 # written for Jaeger Lab
 # ------------------------------------------------------------------------------
-from nwbn_conversion_tools.gui.nwbn_conversion_gui import nwbn_conversion_gui
+from nwb_conversion_tools.gui.nwb_conversion_gui import nwb_conversion_gui
 from pathlib import Path
 
 
 def main():
     here = Path(__file__).parent
-    metafile = here / 'metafile.yml'
+    metafile = here / 'metafile0.yml'
     conversion_module = here.parent.parent / 'conversion_module.py'
 
     # Source paths
@@ -23,7 +23,7 @@ def main():
         'add_treadmill': True
     }
 
-    nwbn_conversion_gui(
+    nwb_conversion_gui(
         metafile=metafile,
         conversion_module=conversion_module,
         source_paths=source_paths,
