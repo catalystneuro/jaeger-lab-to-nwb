@@ -1,5 +1,4 @@
 from nwb_conversion_tools.basedatainterface import BaseDataInterface
-from nwb_conversion_tools.utils import get_schema_from_hdmf_class
 from pynwb import NWBFile
 from ndx_events import Events
 from scipy.io import loadmat
