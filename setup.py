@@ -20,7 +20,7 @@ setup(
     ]},
     install_requires=[
         'matplotlib', 'cycler', 'scipy', 'numpy', 'jupyter', 'h5py', 'pynwb',
-        'pyintan', 'nwb-conversion-tools', 'ndx-fret'],
+        'pyintan', 'nwb-conversion-tools', 'ndx-fret', 'ndx-events'],
     entry_points={
         'console_scripts': ['nwbn-gui-jaeger=jaeger_lab_to_nwb.gui_command_line:main'],
     }

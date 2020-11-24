@@ -1,7 +1,7 @@
 from nwb_conversion_tools.basedatainterface import BaseDataInterface
 from nwb_conversion_tools.utils import get_schema_from_hdmf_class
 from pynwb import NWBFile
-from pynwb.behavior import BehavioralEvents
+from ndx_events import Events
 from scipy.io import loadmat
 import numpy as np
 
@@ -132,12 +132,28 @@ class BpodDataInterface(BaseDataInterface):
             )
 
         # Add events
-        # TODO - substitute timeseries for https://github.com/rly/ndx-events
-        behavioral_events = BehavioralEvents()
-        behavioral_events.create_timeseries(name='port_1_in', timestamps=port_1_in_ts)
-        behavioral_events.create_timeseries(name='port_1_out', timestamps=port_1_out_ts)
-        behavioral_events.create_timeseries(name='port_2_in', timestamps=port_2_in_ts)
-        behavioral_events.create_timeseries(name='port_2_out', timestamps=port_2_out_ts)
-        behavioral_events.create_timeseries(name='tup', timestamps=tup_ts)
-
-        nwbfile.add_acquisition(behavioral_events)
+        nwbfile.add_acquisition(Events(
+            name='Port1In',
+            description='no description',
+            timestamps=port_1_in_ts
+        ))
+        nwbfile.add_acquisition(Events(
+            name='Port1Out',
+            description='no description',
+            timestamps=port_1_out_ts
+        ))
+        nwbfile.add_acquisition(Events(
+            name='Port2In',
+            description='no description',
+            timestamps=port_2_in_ts
+        ))
+        nwbfile.add_acquisition(Events(
+            name='Port2Out',
+            description='no description',
+            timestamps=port_2_out_ts
+        ))
+        nwbfile.add_acquisition(Events(
+            name='Tup',
+            description='no description',
+            timestamps=tup_ts
+        ))
