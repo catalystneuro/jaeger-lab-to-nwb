@@ -60,7 +60,7 @@ class FRETDataInterface(BaseDataInterface):
 
         metadata = dict(
             NWBFile=dict(
-                session_start_time=str(session_start_time_tzaware)
+                session_start_time=session_start_time_tzaware.isoformat()
             )
         )
         return metadata
