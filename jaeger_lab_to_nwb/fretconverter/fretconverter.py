@@ -1,9 +1,8 @@
 from nwb_conversion_tools import NWBConverter
+from nwb_conversion_tools.json_schema_utils import dict_deep_update
 from .fretdatainterface import FRETDataInterface
-from scipy.io import loadmat
 from pathlib import Path
 import yaml
-from datetime import datetime
 
 
 class JaegerFRETConverter(NWBConverter):
@@ -17,5 +16,7 @@ class JaegerFRETConverter(NWBConverter):
         metadata_path = Path(__file__).parent.absolute() / 'metafile.yml'
         with open(metadata_path) as f:
             metadata = yaml.safe_load(f)
+
+        metadata = dict_deep_update(metadata, self.data_interface_objects['FRETDataInterface'].get_metadata())
 
         return metadata

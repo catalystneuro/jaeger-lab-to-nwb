@@ -9,6 +9,7 @@ from ndx_fret import FRET, FRETSeries
 from hdmf.data_utils import DataChunkIterator
 from datetime import datetime
 from pathlib import Path
+import pytz
 import numpy as np
 import struct
 import copy
@@ -50,7 +51,21 @@ class FRETDataInterface(BaseDataInterface):
         return metadata_schema
 
     def get_metadata(self):
-        return dict()
+        # Get session_start_time from first header file
+        dir_cortical_imaging = self.source_data['dir_cortical_imaging']
+        all_files = os.listdir(dir_cortical_imaging)
+        all_headers = [f for f in all_files if ('.rsh' in f) and ('_A' not in f) and ('_B' not in f)]
+        all_headers.sort()
+        _, _, acquisition_date, _, _ = self.read_trial_meta(trial_meta=Path(dir_cortical_imaging) / all_headers[0])
+        session_start_time = datetime.strptime(acquisition_date, '%Y/%m/%d %H:%M:%S')
+        session_start_time_tzaware = pytz.timezone('EST').localize(session_start_time)
+
+        metadata = dict(
+            NWBFile=dict(
+                session_start_time=session_start_time_tzaware
+            )
+        )
+        return metadata
 
     def read_trial_meta(self, trial_meta):
         """Opens trial_meta file and read line by line."""
@@ -93,7 +108,12 @@ class FRETDataInterface(BaseDataInterface):
         metadata : dict
         """
         dir_cortical_imaging = self.source_data['dir_cortical_imaging']
-        fname_prefix = [i.name for i in Path(dir_cortical_imaging).glob('*.rsh')][0].split('-')[0]
+        ophys_list = [i.name for i in Path(dir_cortical_imaging).glob('*.rsh')]
+        if len(ophys_list) > 0:
+            fname_prefix = ophys_list[0].split('-')[0]
+        else:
+            raise OSError(f"No .rsd file found in directory: {dir_cortical_imaging}.\n"
+                          "Did you choose the correct path for source data?")
 
         def data_gen(channel, trial):
             """channel = 'A' or 'B'"""
@@ -135,26 +155,19 @@ class FRETDataInterface(BaseDataInterface):
         all_headers.sort()
         _, _, acquisition_date, _, _ = self.read_trial_meta(trial_meta=Path(dir_cortical_imaging) / all_headers[0])
         session_start_time = datetime.strptime(acquisition_date, '%Y/%m/%d %H:%M:%S')
-        print(session_start_time)
-
-        # Get initial metadata
-        meta_init = copy.deepcopy(metadata)
-        if nwbfile is None:
-            meta_init['NWBFile']['session_start_time'] = session_start_time
-            nwbfile = create_nwbfile(meta_init)
-        else:
-            if session_start_time != nwbfile.session_start_time:
-                print("Session start time in current nwbfile does not match the start time from rsd files.")
-                print("Ophys data conversion aborted.")
-                return nwbfile
+        session_start_time_tzaware = pytz.timezone('EST').localize(session_start_time)
+        if session_start_time_tzaware != nwbfile.session_start_time:
+            print("Session start time in current nwbfile does not match the start time from rsd files.")
+            print("Ophys data conversion aborted.")
+            return
 
         # Create and add device
-        device = Device(name=metadata['Ophys']['Device'][0]['name'])
+        device = Device(name=metadata['Ophys']['Device']['name'])
         nwbfile.add_device(device)
 
         # Get FRETSeries metadata
-        meta_donor = metadata['Ophys']['FRET'][0]['donor'][0]
-        meta_acceptor = metadata['Ophys']['FRET'][0]['acceptor'][0]
+        meta_donor = metadata['Ophys']['FRET']['donor'][0]
+        meta_acceptor = metadata['Ophys']['FRET']['acceptor'][0]
 
         # OpticalChannels
         opt_ch_donor = OpticalChannel(
