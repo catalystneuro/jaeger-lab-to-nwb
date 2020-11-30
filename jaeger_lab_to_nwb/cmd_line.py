@@ -67,8 +67,7 @@ def cmd_line_shortcut():
         # os.environ['NWB_CONVERTER_CLASS'] = 'JaegerLabviewConverter'
         raise NotImplementedError('TODO')
     elif run_args.experiment == 'treadmill':
-        # os.environ['NWB_CONVERTER_CLASS'] = 'JaegerTreadmillConverter'
-        raise NotImplementedError('TODO')
+        os.environ['NWB_CONVERTER_CLASS'] = 'JaegerTreadmillConverter'
 
     print(f'NWB GUI running on localhost:{run_args.port}')
     print(f'Data path: {data_path}')

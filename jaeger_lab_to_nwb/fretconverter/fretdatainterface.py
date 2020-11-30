@@ -12,7 +12,6 @@ from pathlib import Path
 import pytz
 import numpy as np
 import struct
-import copy
 import os
 
 
@@ -32,7 +31,6 @@ class FRETDataInterface(BaseDataInterface):
                     type="string",
                     format="directory",
                     description="path to directory containing cortical imaging data"
-
                 )
             )
         )
