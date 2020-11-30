@@ -249,7 +249,7 @@ class FRETDataInterface(BaseDataInterface):
             )
 
             # Add FRET to acquisition
-            meta_fret = metadata['Ophys']['FRET'][0]
+            meta_fret = metadata['Ophys']['FRET']
             fret = FRET(
                 name=meta_fret['name'] + '_' + str(tr),
                 excitation_lambda=meta_fret['excitation_lambda'],
