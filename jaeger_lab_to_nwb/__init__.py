@@ -1,2 +1,2 @@
-from .bpodconverter.bpodconverter import BpodConverter
-from .fretconverter.fretconverter import FRETConverter
+from .bpodconverter.bpodconverter import JaegerBpodConverter
+from .fretconverter.fretconverter import JaegerFRETConverter

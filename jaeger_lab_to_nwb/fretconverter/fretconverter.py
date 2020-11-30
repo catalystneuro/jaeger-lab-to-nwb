@@ -6,7 +6,7 @@ import yaml
 from datetime import datetime
 
 
-class FRETConverter(NWBConverter):
+class JaegerFRETConverter(NWBConverter):
     data_interface_classes = dict(
         FRETDataInterface=FRETDataInterface
     )

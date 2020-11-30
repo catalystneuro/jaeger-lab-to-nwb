@@ -4,6 +4,19 @@ import os
 
 
 def parse_arguments():
+    """
+    Command line shortcut to open GUI editor.
+    Usage:
+    $ nwbgui-jaeger [experiment] [--data_path] [--port]
+
+    experiment : str
+        The name of the specfic experiment.
+        Options: 'bpod' | 'fret' | 'labview' | 'treadmill'
+    data_path : str
+        Optional. Base path to experimental data.
+    port : int
+        Optional. Port where app will be running.
+    """
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -11,19 +24,23 @@ def parse_arguments():
     )
 
     parser.add_argument(
+        "experiment",
+        help="The name of the specfic experiment. Options: 'bpod' | 'fret' | 'labview' | 'treadmill'"
+    )
+    parser.add_argument(
         "--data_path",
         default='.',
-        help="Path to datasets."
+        help="Path to datasets. Defaults to current working directory."
     )
     parser.add_argument(
         "--port",
         default='5000',
-        help="Path to datasets."
+        help="Port where app will be running. Defaults to 5000."
     )
     parser.add_argument(
         "--dev",
         default=False,
-        help="Run in development mode."
+        help="Run in development mode. Defaults to False."
     )
 
     # Parse arguments
@@ -40,8 +57,18 @@ def cmd_line_shortcut():
     os.environ['DATA_PATH'] = data_path
     os.environ['FLASK_ENV'] = 'production'
 
+    # Choose converter
     os.environ['NWB_CONVERTER_MODULE'] = 'jaeger_lab_to_nwb'
-    os.environ['NWB_CONVERTER_CLASS'] = 'BpodConverter'
+    if run_args.experiment == 'bpod':
+        os.environ['NWB_CONVERTER_CLASS'] = 'JaegerBpodConverter'
+    elif run_args.experiment == 'fret':
+        os.environ['NWB_CONVERTER_CLASS'] = 'JaegerFRETConverter'
+    elif run_args.experiment == 'labview':
+        # os.environ['NWB_CONVERTER_CLASS'] = 'JaegerLabviewConverter'
+        raise NotImplementedError('TODO')
+    elif run_args.experiment == 'treadmill':
+        # os.environ['NWB_CONVERTER_CLASS'] = 'JaegerTreadmillConverter'
+        raise NotImplementedError('TODO')
 
     print(f'NWB GUI running on localhost:{run_args.port}')
     print(f'Data path: {data_path}')

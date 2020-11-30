@@ -6,7 +6,7 @@ import yaml
 from datetime import datetime
 
 
-class BpodConverter(NWBConverter):
+class JaegerBpodConverter(NWBConverter):
     data_interface_classes = dict(
         BpodDataInterface=BpodDataInterface
     )
