@@ -1,5 +1,6 @@
 NWBFile:
-  experimenter: Yunmiao Wang
+  experimenter:
+    - Yunmiao Wang
   identifier: ADDME
   institution: Emory University
   lab: Jaeger lab
