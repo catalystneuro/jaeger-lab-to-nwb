@@ -171,12 +171,12 @@ class FRETDataInterface(BaseDataInterface):
         opt_ch_donor = OpticalChannel(
             name=meta_donor['optical_channel'][0]['name'],
             description=meta_donor['optical_channel'][0]['description'],
-            emission_lambda=meta_donor['optical_channel'][0]['emission_lambda']
+            emission_lambda=float(meta_donor['optical_channel'][0]['emission_lambda'])
         )
         opt_ch_acceptor = OpticalChannel(
             name=meta_acceptor['optical_channel'][0]['name'],
             description=meta_acceptor['optical_channel'][0]['description'],
-            emission_lambda=meta_acceptor['optical_channel'][0]['emission_lambda']
+            emission_lambda=float(meta_acceptor['optical_channel'][0]['emission_lambda'])
         )
 
         # Add trials intervals values only if no trials data exists in nwbfile
@@ -250,7 +250,7 @@ class FRETDataInterface(BaseDataInterface):
             meta_fret = metadata['Ophys']['FRET']
             fret = FRET(
                 name=meta_fret['name'] + '_' + str(tr),
-                excitation_lambda=meta_fret['excitation_lambda'],
+                excitation_lambda=float(meta_fret['excitation_lambda']),
                 donor=frets_donor,
                 acceptor=frets_acceptor
             )
