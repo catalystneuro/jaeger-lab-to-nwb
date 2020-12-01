@@ -1,5 +1,6 @@
 NWBFile:
-  experimenter: Li Su
+  experimenter:
+    - Li Su
   identifier: ADDME
   institution: Emory University
   lab: Jaeger lab
@@ -16,13 +17,13 @@ Subject:
   date_of_birth: 2016-04-04 00:15:00
 Ecephys:
   Device:
-    - name: device_ecephys
+    name: device_ecephys
   ElectricalSeries:
-    - description: ADDME
-      name: ElectricalSeries
-      rate: 0.0
-      starting_time: 0.0
-      conversion: 1.0
+    description: ADDME
+    name: ElectricalSeries
+    rate: 0.0
+    starting_time: 0.0
+    conversion: 1.0
   ElectrodeGroup:
     - description: ADDME
       device: device_ecephys
@@ -37,26 +38,33 @@ Ecephys:
       location: ventromedial thalamus
       name: ElectrodeGroup_3
 Behavior:
-  BehavioralTimeSeries:
-    name: BehavioralTimeSeries
-    time_series:
-      - name: Speed
-        description: ADDME
-      - name: Encoder
-        description: ADDME
-      - name: BeamBreak
-        description: ADDME
-      - name: Iteration
-        description: ADDME
-      - name: ActualPeriod
-        description: ADDME
-      - name: VariableSpeed
-        description: ADDME
-      - name: Nose_X
-        description: ADDME
-      - name: Nose_Y
-        description: ADDME
-      - name: Cntr_X
-        description: ADDME
-      - name: Cntr_Y
-        description: ADDME
+  TimeSeries_speed:
+    name: Speed
+    description: ADDME
+  TimeSeries_encoder:
+    name: Encoder
+    description: ADDME
+  TimeSeries_beambreak:
+    name: BeamBreak
+    description: ADDME
+  TimeSeries_iteration:
+    name: Iteration
+    description: ADDME
+  TimeSeries_actualperiod:
+    name: ActualPeriod
+    description: ADDME
+  TimeSeries_variablespeed:
+    name: VariableSpeed
+    description: ADDME
+  TimeSeries_nosex:
+    name: Nose_X
+    description: ADDME
+  TimeSeries_nosey:
+    name: Nose_Y
+    description: ADDME
+  TimeSeries_cntrx:
+    name: Cntr_X
+    description: ADDME
+  TimeSeries_cntry:
+    name: Cntr_Y
+    description: ADDME

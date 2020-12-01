@@ -2,14 +2,10 @@ from nwb_conversion_tools.basedatainterface import BaseDataInterface
 from nwb_conversion_tools.utils import get_schema_from_hdmf_class
 from nwb_conversion_tools.json_schema_utils import get_base_schema
 
-from pynwb import NWBFile
-from pynwb.behavior import BehavioralTimeSeries
-
+from pynwb import NWBFile, TimeSeries
 from datetime import datetime
 from pathlib import Path
-import copy
 import pytz
-import numpy as np
 import pandas as pd
 import os
 
@@ -27,8 +23,7 @@ class TreadmillDataInterface(BaseDataInterface):
                 dir_behavior_treadmill=dict(
                     type="string",
                     format="directory",
-                    description="path to directory containing behavioral data"
-
+                    description="path to directory containing behavioral data in csv files"
                 )
             )
         )
@@ -36,17 +31,20 @@ class TreadmillDataInterface(BaseDataInterface):
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
-
-        # Behavior metadata schema
-        metadata_schema['properties']['Behavior'] = get_base_schema()
-        metadata_schema['properties']['Behavior']['properties'] = dict(
-            BehavioralTimeSeries=get_schema_from_hdmf_class(BehavioralTimeSeries)
-        )
         return metadata_schema
 
     def get_metadata(self):
+        # Detect relevant file and get initial metadata
+        dir_behavior_treadmill = self.source_data['dir_behavior_treadmill']
+        trials_file = [f for f in Path(dir_behavior_treadmill).glob('*_tr.csv') if '~lock' not in f.name][0]
+        date_string = trials_file.name.split('.')[0].split('_')[1]
+        time_string = trials_file.name.split('.')[0].split('_')[2]
+        date_time_string = date_string + ' ' + time_string
+        date_time_obj = datetime.strptime(date_time_string, '%Y%m%d %H%M%S')
+        session_start_time_tzaware = pytz.timezone('EST').localize(date_time_obj)
         metadata = dict(
             NWBFile=dict(
+                session_start_time=session_start_time_tzaware.isoformat()
             )
         )
         return metadata
@@ -63,24 +61,13 @@ class TreadmillDataInterface(BaseDataInterface):
         """
         # Detect relevant files: trials summary, treadmill data and nose data
         dir_behavior_treadmill = self.source_data['dir_behavior_treadmill']
-        all_files = os.listdir(dir_behavior_treadmill)
-        trials_file = [f for f in all_files if ('_tr.csv' in f and '~lock' not in f)][0]
-        treadmill_file = trials_file.split('_tr')[0] + '.csv'
-        nose_file = trials_file.split('_tr')[0] + '_mk.csv'
+        trials_file = [f for f in Path(dir_behavior_treadmill).glob('*_tr.csv') if '~lock' not in f.name][0]
+        treadmill_file = trials_file.name.split('_tr')[0] + '.csv'
+        nose_file = trials_file.name.split('_tr')[0] + '_mk.csv'
 
         trials_file = os.path.join(dir_behavior_treadmill, trials_file)
         treadmill_file = os.path.join(dir_behavior_treadmill, treadmill_file)
         nose_file = os.path.join(dir_behavior_treadmill, nose_file)
-
-        # Get initial metadata
-        meta_init = copy.deepcopy(metadata)
-        if nwbfile is None:
-            date_string = trials_file[0].split('.')[0].split('_')[1]
-            time_string = trials_file[0].split('.')[0].split('_')[2]
-            date_time_string = date_string + ' ' + time_string
-            date_time_obj = datetime.strptime(date_time_string, '%y%m%d %H%M%S')
-            meta_init['NWBFile']['session_start_time'] = date_time_obj
-            nwbfile = create_nwbfile(meta_init)
 
         # Add trials
         if nwbfile.trials is not None:
@@ -120,10 +107,6 @@ class TreadmillDataInterface(BaseDataInterface):
                     deviation=row['+/- Deviation'],
                 )
 
-        # Create BehavioralTimeSeries container
-        behavioral_ts = BehavioralTimeSeries()
-        meta_behavioral_ts = metadata['Behavior']['BehavioralTimeSeries']['time_series']
-
         # Treadmill continuous data
         df_treadmill = pd.read_csv(treadmill_file, index_col=False)
 
@@ -133,13 +116,13 @@ class TreadmillDataInterface(BaseDataInterface):
         # All behavioral data
         df_all = pd.concat([df_treadmill, df_nose], axis=1, sort=False)
 
+        meta_behavioral_ts = metadata['Behavior']
         t_offset = df_treadmill.loc[0]['Time']
-        for meta in meta_behavioral_ts:
-            behavioral_ts.create_timeseries(
+        for meta in meta_behavioral_ts.values():
+            ts = TimeSeries(
                 name=meta['name'],
                 data=df_all[meta['name']].to_numpy(),
                 timestamps=df_all['Time'].to_numpy() - t_offset,
                 description=meta['description']
             )
-
-        nwbfile.add_acquisition(behavioral_ts)
+            nwbfile.add_acquisition(ts)

@@ -57,7 +57,7 @@ def cmd_line_shortcut():
     os.environ['DATA_PATH'] = data_path
     os.environ['FLASK_ENV'] = 'production'
     os.environ['RENDER_CONVERTER'] = 'True'
-    os.environ['RENDER_VIEWER'] = 'False'
+    os.environ['RENDER_VIEWER'] = 'True'
     os.environ['RENDER_DASHBOARD'] = 'False'
 
     # Choose converter
