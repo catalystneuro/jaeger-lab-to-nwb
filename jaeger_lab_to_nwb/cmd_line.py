@@ -56,6 +56,9 @@ def cmd_line_shortcut():
     data_path = str(Path(run_args.data_path))
     os.environ['DATA_PATH'] = data_path
     os.environ['FLASK_ENV'] = 'production'
+    os.environ['RENDER_CONVERTER'] = 'True'
+    os.environ['RENDER_VIEWER'] = 'False'
+    os.environ['RENDER_DASHBOARD'] = 'False'
 
     # Choose converter
     os.environ['NWB_CONVERTER_MODULE'] = 'jaeger_lab_to_nwb'
