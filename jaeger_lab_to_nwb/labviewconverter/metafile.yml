@@ -15,13 +15,13 @@ Ogen:
   Device:
     name: 470nm blue laser (Shanghai Dream Lasers)
   OptogeneticStimulusSite:
-    - name: OptogeneticStimulusSite
-      device: 470nm blue laser (Shanghai Dream Lasers)
-      description: "VM coordinates in relation to Bregma (in mm): Anterior/Posterior:
-                   1.50, Medial/Lateral: 0.90, Ventral/Dorsal: -4.00."
-      excitation_lambda: 470.
-      location: ventromedial thalamus (VM)
+    name: OptogeneticStimulusSite
+    device: 470nm blue laser (Shanghai Dream Lasers)
+    description: "VM coordinates in relation to Bregma (in mm): Anterior/Posterior:
+                 1.50, Medial/Lateral: 0.90, Ventral/Dorsal: -4.00."
+    excitation_lambda: 470.
+    location: ventromedial thalamus (VM)
   OptogeneticSeries:
-    - name: OptogeneticSeries
-      site: OptogeneticStimulusSite
-      description: ADDME
+    name: OptogeneticSeries
+    site: OptogeneticStimulusSite
+    description: ADDME

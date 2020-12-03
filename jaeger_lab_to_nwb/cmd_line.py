@@ -69,8 +69,7 @@ def cmd_line_shortcut():
     elif run_args.experiment == 'fret':
         os.environ['NWB_CONVERTER_CLASS'] = 'JaegerFRETConverter'
     elif run_args.experiment == 'labview':
-        # os.environ['NWB_CONVERTER_CLASS'] = 'JaegerLabviewConverter'
-        raise NotImplementedError('TODO')
+        os.environ['NWB_CONVERTER_CLASS'] = 'JaegerLabviewConverter'
     elif run_args.experiment == 'treadmill':
         os.environ['NWB_CONVERTER_CLASS'] = 'JaegerTreadmillConverter'
 
