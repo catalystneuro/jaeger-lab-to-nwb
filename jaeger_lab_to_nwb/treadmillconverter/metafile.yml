@@ -5,7 +5,7 @@ NWBFile:
   institution: Emory University
   lab: Jaeger lab
   session_description: ADDME
-  session_start_time: 2018-08-09 10:00:00
+  session_start_time: 2018-08-09T10:00:00-05:00
 Subject:
   age: ADDME
   description: ADDME
@@ -14,7 +14,7 @@ Subject:
   species: ADDME
   subject_id: ADDME
   weight: ADDME
-  date_of_birth: 2016-04-04 00:15:00
+  date_of_birth: 2016-04-04T00:15:00-05:00
 Ecephys:
   Device:
     name: device_ecephys
