@@ -1,7 +1,9 @@
 from nwb_conversion_tools.basedatainterface import BaseDataInterface
 from nwb_conversion_tools.utils import get_schema_from_hdmf_class
+from nwb_conversion_tools.json_schema_utils import get_base_schema
 
 from pynwb import NWBFile, TimeSeries
+from pynwb.device import Device
 from pynwb.ogen import OptogeneticStimulusSite, OptogeneticSeries
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -31,6 +33,14 @@ class LabviewDataInterface(BaseDataInterface):
 
     def get_metadata_schema(self):
         metadata_schema = super().get_metadata_schema()
+
+        # Ogen metadata schema
+        metadata_schema['properties']['Ogen'] = get_base_schema()
+        metadata_schema['properties']['Ogen']['properties'] = dict(
+            Device=get_schema_from_hdmf_class(Device),
+            OptogeneticStimulusSite=get_schema_from_hdmf_class(OptogeneticStimulusSite),
+            OptogeneticSeries=get_schema_from_hdmf_class(OptogeneticSeries)
+        )
         return metadata_schema
 
     def get_metadata(self):
@@ -49,10 +59,11 @@ class LabviewDataInterface(BaseDataInterface):
         df_0 = pd.read_csv(fpath, sep='\t', index_col=False, names=colnames)
         t0 = df_0['StartT'][0]   # initial time in Labview seconds
         session_start_time = labview_time_offset + timedelta(seconds=t0)
+        session_start_time_tzaware = pytz.timezone('EST').localize(session_start_time)
 
         metadata = dict(
             NWBFile=dict(
-                session_start_time=session_start_time
+                session_start_time=session_start_time_tzaware.isoformat()
             )
         )
         return metadata
@@ -67,6 +78,7 @@ class LabviewDataInterface(BaseDataInterface):
         nwbfile : NWBFile
         metadata : dict
         """
+        print("Converting Labview data...")
         # Get list of trial summary files
         dir_behavior_labview = self.source_data['dir_behavior_labview']
         all_files = os.listdir(dir_behavior_labview)
@@ -82,6 +94,7 @@ class LabviewDataInterface(BaseDataInterface):
         t0 = df_0['StartT'][0]   # initial time in Labview seconds
 
         # Add trials
+        print("Converting Labview trials data...")
         if nwbfile.trials is not None:
             print('Trials already exist in current nwb file. Labview behavior trials not added.')
         else:
@@ -181,6 +194,7 @@ class LabviewDataInterface(BaseDataInterface):
         df_continuous = pd.concat(frames)
 
         # Behavioral data
+        print("Converting Labview behavior data...")
         l1_ts = TimeSeries(
             name="left_lick",
             data=df_continuous['Lick 1'].to_numpy(),
@@ -198,14 +212,18 @@ class LabviewDataInterface(BaseDataInterface):
         nwbfile.add_acquisition(l2_ts)
 
         # Optogenetics stimulation data
-        ogen_device = nwbfile.create_device(name=metadata['Ogen']['Device']['name'])
+        print("Converting Labview optogenetics data...")
+        ogen_device = nwbfile.create_device(
+            name=metadata['Ogen']['Device']['name'],
+            description=metadata['Ogen']['Device']['description']
+        )
 
         meta_ogen_site = metadata['Ogen']['OptogeneticStimulusSite']
         ogen_stim_site = OptogeneticStimulusSite(
             name=meta_ogen_site['name'],
             device=ogen_device,
             description=meta_ogen_site['description'],
-            excitation_lambda=meta_ogen_site['excitation_lambda'],
+            excitation_lambda=float(meta_ogen_site['excitation_lambda']),
             location=meta_ogen_site['location']
         )
         nwbfile.add_ogen_site(ogen_stim_site)

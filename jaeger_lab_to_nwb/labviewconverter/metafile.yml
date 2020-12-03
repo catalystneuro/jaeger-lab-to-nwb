@@ -1,5 +1,4 @@
 NWBFile:
-  experimenter: experimenter
   identifier: ADDME
   institution: Emory University
   lab: Jaeger lab
@@ -13,10 +12,11 @@ Subject:
   date_of_birth: 2018-12-28T00:00:00-05:00
 Ogen:
   Device:
-    name: 470nm blue laser (Shanghai Dream Lasers)
+    name: device_ogen
+    description: 470nm blue laser (Shanghai Dream Lasers)
   OptogeneticStimulusSite:
     name: OptogeneticStimulusSite
-    device: 470nm blue laser (Shanghai Dream Lasers)
+    device: device_ogen
     description: "VM coordinates in relation to Bregma (in mm): Anterior/Posterior:
                  1.50, Medial/Lateral: 0.90, Ventral/Dorsal: -4.00."
     excitation_lambda: 470.
