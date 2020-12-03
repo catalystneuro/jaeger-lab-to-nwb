@@ -165,7 +165,7 @@ class IntanDataInterface(BaseDataInterface):
             description=metadata['Ecephys']['ElectricalSeries']['description'],
             data=data_iter,
             electrodes=electrode_table_region,
-            rate=metadata['Ecephys']['ElectricalSeries']['rate'],
+            rate=float(metadata['Ecephys']['ElectricalSeries']['rate']),
             starting_time=0.0,
             conversion=es_conversion_factor
         )
