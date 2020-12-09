@@ -56,22 +56,22 @@ def cmd_line_shortcut():
 
     # Set ENV variables for app
     data_path = str(Path(run_args.data_path))
-    os.environ['DATA_PATH'] = data_path
+    os.environ['NWB_GUI_ROOT_PATH'] = data_path
+    os.environ['NWB_GUI_RENDER_CONVERTER'] = 'True'
+    os.environ['NWB_GUI_RENDER_VIEWER'] = 'True'
+    os.environ['NWB_GUI_RENDER_DASHBOARD'] = 'False'
     os.environ['FLASK_ENV'] = 'production'
-    os.environ['RENDER_CONVERTER'] = 'True'
-    os.environ['RENDER_VIEWER'] = 'True'
-    os.environ['RENDER_DASHBOARD'] = 'False'
 
     # Choose converter
-    os.environ['NWB_CONVERTER_MODULE'] = 'jaeger_lab_to_nwb'
+    os.environ['NWB_GUI_CONVERTER_MODULE'] = 'jaeger_lab_to_nwb'
     if run_args.experiment == 'bpod':
-        os.environ['NWB_CONVERTER_CLASS'] = 'JaegerBpodConverter'
+        os.environ['NWB_GUI_CONVERTER_CLASS'] = 'JaegerBpodConverter'
     elif run_args.experiment == 'fret':
-        os.environ['NWB_CONVERTER_CLASS'] = 'JaegerFRETConverter'
+        os.environ['NWB_GUI_CONVERTER_CLASS'] = 'JaegerFRETConverter'
     elif run_args.experiment == 'labview':
-        os.environ['NWB_CONVERTER_CLASS'] = 'JaegerLabviewConverter'
+        os.environ['NWB_GUI_CONVERTER_CLASS'] = 'JaegerLabviewConverter'
     elif run_args.experiment == 'treadmill':
-        os.environ['NWB_CONVERTER_CLASS'] = 'JaegerTreadmillConverter'
+        os.environ['NWB_GUI_CONVERTER_CLASS'] = 'JaegerTreadmillConverter'
 
     print(f'NWB GUI running on localhost:{run_args.port}')
     print(f'Data path: {data_path}')
