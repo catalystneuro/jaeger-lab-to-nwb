@@ -1,0 +1,20 @@
+NWBFile:
+  experimenter:
+    - Yunmiao Wang
+  identifier: ADDME
+  institution: Emory University
+  lab: Jaeger lab
+  session_description: ADDME
+  session_start_time: 2018-08-09T10:00:00-05:00
+  surgery: "Date of the surgery: 11/14/2019
+           AAV injection:
+           VM (angle = 0 degrees, - AP 1.50, ML 0.90, DV, -4.05*) -
+           retrograde AAV-EF1a-mCherry-IRES-Cre, 120 nL.
+           GPi (angle = 8.3 degrees, mm - AP 1.75, ML 1.92, DV -4.45* ) -
+           AAV2/EF1a- DIO-hChR2(E123T//T159C)-EYFP, 70 nL"
+Subject:
+  sex: female
+  species: black 6
+  subject_id: GPi12
+  weight: 18.8g
+  date_of_birth: 2019-08-07T00:00:00-05:00

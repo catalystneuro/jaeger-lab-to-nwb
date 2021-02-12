@@ -6,8 +6,27 @@ from jaeger_lab_to_nwb.resources.add_behavior import (add_behavior_bpod, add_beh
                                                       add_behavior_labview)
 from jaeger_lab_to_nwb.resources.add_ecephys import add_ecephys_rhd
 from jaeger_lab_to_nwb.resources.add_ophys import add_ophys_rsd
+from nwb_conversion_tools import NWBConverter
 import yaml
 import os
+
+
+class JaegerNWBConverter(NWBConverter):
+
+    def add_bpod(self):
+        pass
+
+    def add_treadmill(self):
+        pass
+
+    def add_rhd(self):
+        pass
+
+    def add_labview(self):
+        pass
+
+    def add_ophys(self):
+        pass
 
 
 def conversion_function(source_paths, f_nwb, metadata, add_bpod=False, add_treadmill=False,
