@@ -1,0 +1,9 @@
+nwb-conversion-tools==0.6.3
+ndx-fret==0.2.1
+ndx-events==0.2.0
+pyintan==0.3.0
+nwbwidgets==0.8.0
+pynwb==2.0.1
+h5py==3.6.0
+hdmf==3.2.1
+jupyterlab==3.3.2

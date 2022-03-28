@@ -13,7 +13,14 @@ Authors: Luiz Tauffer and Ben Dichter
 
 # Install
 
+Create a separate environment:
+```bash
+$ conda create -n env_jaeger python=3.7 pip
 ```
+
+Activate environment and install dependencies
+```bash
+$ conda activate env_jaeger
 $ pip install jaeger-lab-to-nwb
 ```
 
