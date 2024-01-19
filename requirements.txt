@@ -6,4 +6,4 @@ nwbwidgets==0.8.0
 pynwb==2.0.1
 h5py==3.6.0
 hdmf==3.2.1
-jupyterlab==3.3.2
+jupyterlab==3.6.7
